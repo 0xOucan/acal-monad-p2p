@@ -7,6 +7,7 @@ import toast from "react-hot-toast";
 import { useAccount } from "wagmi";
 import { CurrencyDollarIcon, ListBulletIcon, QrCodeIcon, ShieldCheckIcon } from "@heroicons/react/24/outline";
 import { QRScanner } from "~~/components/QRScanner";
+import { SponsorPoolDebug } from "~~/components/SponsorPoolDebug";
 import { Address } from "~~/components/scaffold-eth";
 import { useCreateOrder } from "~~/hooks/acal/useCreateOrder";
 import { useNextOrderId } from "~~/hooks/acal/useOrders";
@@ -109,6 +110,9 @@ const Home: NextPage = () => {
 
         {/* Main Content */}
         <div className="max-w-2xl mx-auto">
+          {/* SponsorPool Debug - Development Only */}
+          <SponsorPoolDebug />
+
           {step === "scan" && (
             <div className="acal-card rounded-xl p-6">
               <h2 className="text-2xl font-semibold text-center mb-6 text-[#FFD700] pixel-font">
