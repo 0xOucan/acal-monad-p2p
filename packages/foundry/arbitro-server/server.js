@@ -293,8 +293,31 @@ async function autoResolveOrder(orderId, verdict) {
         const tx = await escrowContract.resolveDispute(orderId, verdict);
         console.log(`📡 Resolution transaction sent: ${tx.hash}`);
         
-        const receipt = await tx.wait();
-        console.log(`✅ Order ${orderId} resolved in block ${receipt.blockNumber}`);
+        try {
+            const receipt = await tx.wait();
+            console.log(`✅ Order ${orderId} resolved in block ${receipt.blockNumber}`);
+        } catch (receiptError) {
+            console.log(`⚠️ Receipt timeout (RPC issue), but transaction was sent: ${tx.hash}`);
+            console.log(`💡 Transaction likely successful - checking order status in 3s...`);
+            
+            // Wait a bit and check if order status changed
+            await new Promise(resolve => setTimeout(resolve, 3000));
+            
+            try {
+                const updatedOrder = await escrowContract.orders(orderId);
+                const newStatus = Number(updatedOrder[7]);
+                
+                if (newStatus === ORDER_STATUS.COMPLETED) {
+                    console.log(`✅ Confirmed: Order ${orderId} was successfully resolved despite RPC error!`);
+                } else {
+                    console.log(`❌ Order ${orderId} status unchanged: ${newStatus} - genuine failure`);
+                    throw receiptError;
+                }
+            } catch (statusError) {
+                console.log(`❌ Could not verify order status: ${statusError.message}`);
+                throw receiptError;
+            }
+        }
         
         // Update database
         const order = orderDatabase.get(orderId);
