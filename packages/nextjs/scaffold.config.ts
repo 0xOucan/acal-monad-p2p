@@ -1,4 +1,32 @@
+import { defineChain } from "viem";
 import * as chains from "viem/chains";
+
+// Define Monad testnet chain
+const monadTestnet = defineChain({
+  id: 10143,
+  name: "Monad Testnet",
+  network: "monad-testnet",
+  nativeCurrency: {
+    decimals: 18,
+    name: "MON",
+    symbol: "MON",
+  },
+  rpcUrls: {
+    default: {
+      http: ["https://testnet-rpc.monad.xyz"],
+    },
+    public: {
+      http: ["https://testnet-rpc.monad.xyz"],
+    },
+  },
+  blockExplorers: {
+    default: {
+      name: "Monad Explorer",
+      url: "https://testnet.monadexplorer.com",
+    },
+  },
+  testnet: true,
+});
 
 export type ScaffoldConfig = {
   targetNetworks: readonly chains.Chain[];
@@ -13,7 +41,7 @@ export const DEFAULT_ALCHEMY_API_KEY = "oKxs-03sij-U_N0iOlrSsZFr29-IqbuF";
 
 const scaffoldConfig = {
   // The networks on which your DApp is live
-  targetNetworks: [chains.foundry, chains.monad_testnet],
+  targetNetworks: [monadTestnet, chains.foundry],
 
   // The interval at which your front-end polls the RPC servers for new data
   // it has no effect if you only target the local network (default is 4000)
@@ -28,8 +56,8 @@ const scaffoldConfig = {
   // If you want to use a different RPC for a specific network, you can add it here.
   // The key is the chain ID, and the value is the HTTP RPC URL
   rpcOverrides: {
-    // Example:
-    // [chains.mainnet.id]: "https://mainnet.buidlguidl.com",
+    // Monad testnet RPC
+    [10143]: "https://testnet-rpc.monad.xyz",
   },
 
   // This is ours WalletConnect's default project ID.

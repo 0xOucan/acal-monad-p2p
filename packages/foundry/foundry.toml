@@ -1,8 +1,16 @@
 [profile.default]
-src = 'contracts'
-out = 'out'
-libs = ['lib']
+src = "src"
+out = "out"
+libs = ["lib"]
 fs_permissions = [{ access = "read-write", path = "./"}]
+metadata = true
+metadata_hash = "none"  # disable ipfs
+use_literal_content = true # use source code
+solc_version = "0.8.24"
+
+# Monad Configuration (official docs)
+eth-rpc-url = "https://testnet-rpc.monad.xyz"
+chain_id = 10143
 
 
 [rpc_endpoints]

@@ -4,6 +4,226 @@
  */
 import { GenericContractsDeclaration } from "~~/utils/scaffold-eth/contract";
 
-const deployedContracts = {} as const;
+const deployedContracts = {
+  10143: {
+    SponsorPool: {
+      address: "0x64A47d84dE05B9Efda4F63Fbca2Fc8cEb96E6816",
+      abi: [
+        {
+          type: "constructor",
+          inputs: [{ name: "_owner", type: "address", internalType: "address" }],
+          stateMutability: "nonpayable",
+        },
+        { type: "receive", stateMutability: "payable" },
+        {
+          type: "function",
+          name: "balance",
+          inputs: [],
+          outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "deposit",
+          inputs: [],
+          outputs: [],
+          stateMutability: "payable",
+        },
+        {
+          type: "function",
+          name: "disburseSubsidy",
+          inputs: [
+            { name: "to", type: "address", internalType: "address" },
+            { name: "amount", type: "uint256", internalType: "uint256" },
+          ],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "escrow",
+          inputs: [],
+          outputs: [{ name: "", type: "address", internalType: "address" }],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "owner",
+          inputs: [],
+          outputs: [{ name: "", type: "address", internalType: "address" }],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "pullMakerBond",
+          inputs: [{ name: "amount", type: "uint256", internalType: "uint256" }],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "setEscrow",
+          inputs: [{ name: "_escrow", type: "address", internalType: "address" }],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "event",
+          name: "Deposited",
+          inputs: [
+            { name: "from", type: "address", indexed: true, internalType: "address" },
+            { name: "amount", type: "uint256", indexed: false, internalType: "uint256" },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "EscrowSet",
+          inputs: [{ name: "escrow", type: "address", indexed: true, internalType: "address" }],
+          anonymous: false,
+        },
+      ],
+    },
+    AcalEscrow: {
+      address: "0x9486f6C9d28ECdd95aba5bfa6188Bbc104d89C3e",
+      abi: [
+        {
+          type: "constructor",
+          inputs: [
+            { name: "_sponsorPool", type: "address", internalType: "address" },
+            { name: "_arbitro", type: "address", internalType: "address" },
+            { name: "_owner", type: "address", internalType: "address" },
+          ],
+          stateMutability: "nonpayable",
+        },
+        { type: "receive", stateMutability: "payable" },
+        {
+          type: "function",
+          name: "MAKER_BOND",
+          inputs: [],
+          outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "SUBSIDY",
+          inputs: [],
+          outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "TAKER_BOND",
+          inputs: [],
+          outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "createOrder",
+          inputs: [
+            { name: "crHash", type: "bytes32", internalType: "bytes32" },
+            { name: "hashQR", type: "bytes32", internalType: "bytes32" },
+            { name: "mxn", type: "uint256", internalType: "uint256" },
+            { name: "expiry", type: "uint256", internalType: "uint256" },
+          ],
+          outputs: [{ name: "id", type: "uint256", internalType: "uint256" }],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "lockOrder",
+          inputs: [{ name: "id", type: "uint256", internalType: "uint256" }],
+          outputs: [],
+          stateMutability: "payable",
+        },
+        {
+          type: "function",
+          name: "mxnToMon",
+          inputs: [{ name: "mxn", type: "uint256", internalType: "uint256" }],
+          outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+          stateMutability: "pure",
+        },
+        {
+          type: "function",
+          name: "orders",
+          inputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+          outputs: [
+            { name: "maker", type: "address", internalType: "address" },
+            { name: "taker", type: "address", internalType: "address" },
+            { name: "cr", type: "bytes32", internalType: "bytes32" },
+            { name: "hashQR", type: "bytes32", internalType: "bytes32" },
+            { name: "mxn", type: "uint256", internalType: "uint256" },
+            { name: "mon", type: "uint256", internalType: "uint256" },
+            { name: "expiry", type: "uint256", internalType: "uint256" },
+            { name: "status", type: "uint8", internalType: "enum AcalEscrow.Status" },
+            { name: "makerBond", type: "uint256", internalType: "uint256" },
+            { name: "takerBond", type: "uint256", internalType: "uint256" },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "disputeOrder",
+          inputs: [{ name: "id", type: "uint256", internalType: "uint256" }],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "resolveDispute",
+          inputs: [
+            { name: "id", type: "uint256", internalType: "uint256" },
+            { name: "verdict", type: "uint8", internalType: "uint8" },
+          ],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "arbitro",
+          inputs: [],
+          outputs: [{ name: "", type: "address", internalType: "address" }],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "nextId",
+          inputs: [],
+          outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+          stateMutability: "view",
+        },
+        {
+          type: "event",
+          name: "OrderCreated",
+          inputs: [
+            { name: "id", type: "uint256", indexed: true, internalType: "uint256" },
+            { name: "maker", type: "address", indexed: true, internalType: "address" },
+            { name: "mxn", type: "uint256", indexed: false, internalType: "uint256" },
+            { name: "mon", type: "uint256", indexed: false, internalType: "uint256" },
+            { name: "expiry", type: "uint256", indexed: false, internalType: "uint256" },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "OrderLocked",
+          inputs: [
+            { name: "id", type: "uint256", indexed: true, internalType: "uint256" },
+            { name: "taker", type: "address", indexed: true, internalType: "address" },
+            { name: "value", type: "uint256", indexed: false, internalType: "uint256" },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "OrderCompleted",
+          inputs: [{ name: "id", type: "uint256", indexed: true, internalType: "uint256" }],
+          anonymous: false,
+        },
+      ],
+    },
+  },
+} as const;
 
 export default deployedContracts satisfies GenericContractsDeclaration;
