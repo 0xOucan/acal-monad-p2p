@@ -13,10 +13,20 @@ const monadTestnet = defineChain({
   },
   rpcUrls: {
     default: {
-      http: ["https://testnet-rpc.monad.xyz"],
+      http: [
+        "https://monad-testnet.drpc.org",
+        "https://rpc.ankr.com/monad_testnet",
+        "https://testnet-rpc.monad.xyz",
+        "https://monad-testnet.gateway.tatum.io",
+      ],
     },
     public: {
-      http: ["https://testnet-rpc.monad.xyz"],
+      http: [
+        "https://monad-testnet.drpc.org",
+        "https://rpc.ankr.com/monad_testnet",
+        "https://testnet-rpc.monad.xyz",
+        "https://monad-testnet.gateway.tatum.io",
+      ],
     },
   },
   blockExplorers: {
@@ -56,8 +66,8 @@ const scaffoldConfig = {
   // If you want to use a different RPC for a specific network, you can add it here.
   // The key is the chain ID, and the value is the HTTP RPC URL
   rpcOverrides: {
-    // Monad testnet RPC
-    [10143]: "https://testnet-rpc.monad.xyz",
+    // Monad testnet RPC with fastest endpoint first
+    [10143]: "https://monad-testnet.drpc.org",
   },
 
   // This is ours WalletConnect's default project ID.
