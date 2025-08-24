@@ -96,6 +96,7 @@ This project was developed for the **[Mobil3 Hackathon](https://mobil3.xyz/?lang
 - **Smart Contracts:** Solidity + Foundry + OpenZeppelin
 - **Blockchain:** Monad Testnet (Chain ID: 10143)
 - **Backend:** Node.js + Express + ethers.js (Arbitro Server)
+- **Indexing:** Envio HyperIndex for real-time GraphQL data
 - **Styling:** Tailwind CSS + TypeScript
 
 ### **Verified Smart Contracts on Monad:**
@@ -104,6 +105,52 @@ This project was developed for the **[Mobil3 Hackathon](https://mobil3.xyz/?lang
 |----------|---------|--------|----------|
 | **AcalEscrow** | [`0x9486f6C9d28ECdd95aba5bfa6188Bbc104d89C3e`](https://testnet.monadscan.com/address/0x9486f6C9d28ECdd95aba5bfa6188Bbc104d89C3e#code) | ✅ Verified | MonadScan |
 | **SponsorPool** | [`0x64A47d84dE05B9Efda4F63Fbca2Fc8cEb96E6816`](https://testnet.monadscan.com/address/0x64A47d84dE05B9Efda4F63Fbca2Fc8cEb96E6816#code) | ✅ Verified | MonadScan |
+
+### **📊 Envio HyperIndex Integration:**
+
+ACAL uses **Envio HyperIndex** to provide real-time, indexed data from Monad Testnet, enabling fast GraphQL queries for the frontend dashboard.
+
+#### **Indexed Data:**
+- **Orders:** Complete P2P order lifecycle (Created → Locked → Completed)
+- **Events:** All contract interactions with block-level granularity  
+- **Statistics:** Global metrics (volume, order counts, success rates)
+- **User Activity:** Maker/Taker transaction history
+
+#### **GraphQL Endpoint:**
+- **Live Indexer:** `https://indexer.dev.hyperindex.xyz/f43f628/v1/graphql`
+- **Start Block:** `32,750,000` (AcalEscrow deployment)
+- **Network:** Monad Testnet (Chain ID: 10143)
+
+#### **Key Features:**
+- 🚀 **Real-time Indexing:** Sub-second event processing
+- 📈 **Analytics Dashboard:** Live order tracking and statistics
+- 🔍 **GraphQL Queries:** Flexible data retrieval for frontend
+- 📱 **Mobile Optimized:** Fast loading for mobile-first UX
+
+#### **Example Queries:**
+```graphql
+# Get all open orders
+query GetOpenOrders {
+  Order(where: {status: {_eq: "OPEN"}}) {
+    id
+    maker
+    mxn
+    mon
+    expiry
+    createdAt
+  }
+}
+
+# Get global statistics
+query GetStats {
+  GlobalStats {
+    totalOrders
+    totalVolumeMXN
+    totalVolumeMON
+    completedOrders
+  }
+}
+```
 
 ---
 
