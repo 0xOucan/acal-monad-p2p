@@ -19,14 +19,26 @@ interface OrderCardProps {
 }
 
 const OrderCard: React.FC<OrderCardProps> = ({ orderId, onLockOrder, isLocking, lockingOrderId }) => {
-  const { order, isLoading } = useOrder(orderId);
+  const { order, isLoading, error } = useOrder(orderId);
   const { address: connectedAddress } = useAccount();
 
-  if (isLoading || !order) {
+  if (isLoading) {
     return (
       <div className="acal-card rounded-xl p-4 animate-pulse">
         <div className="h-4 bg-gray-600 rounded mb-2"></div>
         <div className="h-4 bg-gray-600 rounded w-3/4"></div>
+      </div>
+    );
+  }
+
+  if (error || !order) {
+    return (
+      <div className="acal-card rounded-xl p-4 border-red-500/20">
+        <div className="text-center py-4">
+          <div className="text-2xl mb-2">⚠️</div>
+          <div className="text-sm text-red-400">{error ? "Error al cargar orden" : "Orden no encontrada"}</div>
+          <div className="text-xs text-gray-500 mt-1">#{orderId}</div>
+        </div>
       </div>
     );
   }
@@ -127,7 +139,7 @@ const OrderCard: React.FC<OrderCardProps> = ({ orderId, onLockOrder, isLocking, 
 
 const OrdersPage: NextPage = () => {
   const router = useRouter();
-  const { nextId } = useNextOrderId();
+  const { nextId, isLoading: isLoadingNextId } = useNextOrderId();
   const { lockOrder, isLocking } = useLockOrder();
   const [lockingOrderId, setLockingOrderId] = useState<number | undefined>();
 
@@ -190,7 +202,13 @@ const OrdersPage: NextPage = () => {
 
         {/* Orders Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {orderIds.length === 0 ? (
+          {isLoadingNextId ? (
+            <div className="col-span-full text-center py-12">
+              <div className="text-6xl mb-4">🛶</div>
+              <h3 className="text-xl font-semibold text-[#40E0D0] mb-2">Cargando órdenes...</h3>
+              <p className="text-gray-400">Conectando con la red Monad</p>
+            </div>
+          ) : orderIds.length === 0 ? (
             <div className="col-span-full text-center py-12">
               <div className="text-6xl mb-4">🏝️</div>
               <h3 className="text-xl font-semibold text-gray-300 mb-2">No hay órdenes aún</h3>
