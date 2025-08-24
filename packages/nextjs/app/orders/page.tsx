@@ -9,39 +9,23 @@ import { useAccount } from "wagmi";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 import { Address } from "~~/components/scaffold-eth";
 import { useLockOrder } from "~~/hooks/acal/useLockOrder";
-import { ORDER_STATUS, getOrderStatusText, useNextOrderId, useOrder } from "~~/hooks/acal/useOrders";
+import {
+  type FrontendOrder,
+  ORDER_STATUS,
+  getOrderStatusText,
+  useAllOrders,
+  useGlobalStats,
+} from "~~/hooks/acal/useOrdersGraphQL";
 
 interface OrderCardProps {
-  orderId: number;
+  order: FrontendOrder;
   onLockOrder: (orderId: number, orderMon: bigint) => void;
   isLocking: boolean;
   lockingOrderId?: number;
 }
 
-const OrderCard: React.FC<OrderCardProps> = ({ orderId, onLockOrder, isLocking, lockingOrderId }) => {
-  const { order, isLoading, error } = useOrder(orderId);
+const OrderCard: React.FC<OrderCardProps> = ({ order, onLockOrder, isLocking, lockingOrderId }) => {
   const { address: connectedAddress } = useAccount();
-
-  if (isLoading) {
-    return (
-      <div className="acal-card rounded-xl p-4 animate-pulse">
-        <div className="h-4 bg-gray-600 rounded mb-2"></div>
-        <div className="h-4 bg-gray-600 rounded w-3/4"></div>
-      </div>
-    );
-  }
-
-  if (error || !order) {
-    return (
-      <div className="acal-card rounded-xl p-4 border-red-500/20">
-        <div className="text-center py-4">
-          <div className="text-2xl mb-2">⚠️</div>
-          <div className="text-sm text-red-400">{error ? "Error al cargar orden" : "Orden no encontrada"}</div>
-          <div className="text-xs text-gray-500 mt-1">#{orderId}</div>
-        </div>
-      </div>
-    );
-  }
 
   const isExpired = order ? Number(order.expiry) * 1000 < Date.now() : false;
   const isMaker =
@@ -89,7 +73,7 @@ const OrderCard: React.FC<OrderCardProps> = ({ orderId, onLockOrder, isLocking, 
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center space-x-2">
           <span className="text-2xl">{getStatusIcon()}</span>
-          <span className="text-lg font-bold text-[#FFD700]">#{orderId}</span>
+          <span className="text-lg font-bold text-[#FFD700]">#{order.id}</span>
         </div>
         <span className={`text-sm font-medium ${getStatusColor()}`}>
           {order ? getOrderStatusText(order.status) : "Desconocido"}
@@ -125,11 +109,11 @@ const OrderCard: React.FC<OrderCardProps> = ({ orderId, onLockOrder, isLocking, 
 
       {canLock && order && (
         <button
-          onClick={() => onLockOrder(orderId, order.mon)}
+          onClick={() => onLockOrder(parseInt(order.id), order.mon)}
           disabled={isLocking}
           className="w-full bg-[#FFD700] hover:bg-[#FFD700]/80 disabled:bg-gray-600 disabled:cursor-not-allowed text-black font-bold py-3 px-4 rounded-lg transition-colors"
         >
-          {isLocking && lockingOrderId === orderId ? "Bloqueando..." : "⛵ Tomar Orden"}
+          {isLocking && lockingOrderId === parseInt(order.id) ? "Bloqueando..." : "⛵ Tomar Orden"}
         </button>
       )}
 
@@ -144,7 +128,8 @@ const OrderCard: React.FC<OrderCardProps> = ({ orderId, onLockOrder, isLocking, 
 
 const OrdersPage: NextPage = () => {
   const router = useRouter();
-  const { nextId, isLoading: isLoadingNextId } = useNextOrderId();
+  const { orders, isLoading: isLoadingOrders, error: ordersError } = useAllOrders();
+  const { stats } = useGlobalStats();
   const { lockOrder, isLocking } = useLockOrder();
   const [lockingOrderId, setLockingOrderId] = useState<number | undefined>();
 
@@ -163,9 +148,6 @@ const OrdersPage: NextPage = () => {
       setLockingOrderId(undefined);
     }
   };
-
-  // Generate array of order IDs to display
-  const orderIds = nextId ? Array.from({ length: Number(nextId) }, (_, i) => i) : [];
 
   return (
     <div className="min-h-screen acal-bg text-white">
@@ -186,34 +168,48 @@ const OrdersPage: NextPage = () => {
           <div className="acal-card rounded-lg p-4 text-center">
             <div className="text-2xl mb-1">🛶</div>
             <div className="text-sm text-gray-400">Total Órdenes</div>
-            <div className="text-xl font-bold text-[#FFD700]">{nextId?.toString() || "0"}</div>
+            <div className="text-xl font-bold text-[#FFD700]">{stats?.totalOrders || "0"}</div>
           </div>
           <div className="acal-card rounded-lg p-4 text-center">
             <div className="text-2xl mb-1">⛵</div>
             <div className="text-sm text-gray-400">Activas</div>
-            <div className="text-xl font-bold text-[#40E0D0]">-</div>
+            <div className="text-xl font-bold text-[#40E0D0]">{stats?.openOrders || "0"}</div>
           </div>
           <div className="acal-card rounded-lg p-4 text-center">
             <div className="text-2xl mb-1">🏆</div>
             <div className="text-sm text-gray-400">Completadas</div>
-            <div className="text-xl font-bold text-green-500">-</div>
+            <div className="text-xl font-bold text-green-500">{stats?.completedOrders || "0"}</div>
           </div>
           <div className="acal-card rounded-lg p-4 text-center">
             <div className="text-2xl mb-1">💰</div>
-            <div className="text-sm text-gray-400">Volumen</div>
-            <div className="text-xl font-bold text-[#FFD700]">-</div>
+            <div className="text-sm text-gray-400">Volumen MXN</div>
+            <div className="text-xl font-bold text-[#FFD700]">
+              {stats ? (parseInt(stats.totalVolumeMXN) / 1000).toFixed(0) + "K" : "0"}
+            </div>
           </div>
         </div>
 
+        {/* Error Display */}
+        {ordersError && (
+          <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 mb-8">
+            <div className="text-red-400 text-center">
+              <div className="text-2xl mb-2">⚠️</div>
+              <div className="font-semibold">Error al cargar órdenes</div>
+              <div className="text-sm mt-1">{ordersError}</div>
+              <div className="text-xs mt-2 text-gray-400">Asegúrate de que el indexador Envio esté ejecutándose</div>
+            </div>
+          </div>
+        )}
+
         {/* Orders Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {isLoadingNextId ? (
+          {isLoadingOrders ? (
             <div className="col-span-full text-center py-12">
               <div className="text-6xl mb-4">🛶</div>
               <h3 className="text-xl font-semibold text-[#40E0D0] mb-2">Cargando órdenes...</h3>
-              <p className="text-gray-400">Conectando con la red Monad</p>
+              <p className="text-gray-400">Conectando con el indexador Envio</p>
             </div>
-          ) : orderIds.length === 0 ? (
+          ) : orders.length === 0 ? (
             <div className="col-span-full text-center py-12">
               <div className="text-6xl mb-4">🏝️</div>
               <h3 className="text-xl font-semibold text-gray-300 mb-2">No hay órdenes aún</h3>
@@ -226,10 +222,10 @@ const OrdersPage: NextPage = () => {
               </button>
             </div>
           ) : (
-            orderIds.map(orderId => (
+            orders.map(order => (
               <OrderCard
-                key={orderId}
-                orderId={orderId}
+                key={order.id}
+                order={order}
                 onLockOrder={handleLockOrder}
                 isLocking={isLocking}
                 lockingOrderId={lockingOrderId}

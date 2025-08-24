@@ -1,0 +1,41 @@
+# Envio Production Deployment
+FROM node:18-alpine
+
+# Install system dependencies
+RUN apk add --no-cache \
+    bash \
+    curl \
+    git \
+    postgresql-client
+
+# Install Envio CLI
+RUN npm install -g envio@latest
+
+# Set working directory
+WORKDIR /app
+
+# Copy Envio configuration files
+COPY envio.production.yaml envio.yaml
+COPY schema.graphql .
+COPY src/ src/
+
+# Generate Envio code
+RUN envio codegen
+
+# Set environment variables for production
+ENV NODE_ENV=production
+ENV ENVIO_PG_HOST=${POSTGRES_HOST:-localhost}
+ENV ENVIO_PG_PORT=${POSTGRES_PORT:-5432}
+ENV ENVIO_PG_DATABASE=${POSTGRES_DB:-envio}
+ENV ENVIO_PG_USERNAME=${POSTGRES_USER:-postgres}
+ENV ENVIO_PG_PASSWORD=${POSTGRES_PASSWORD:-password}
+
+# Expose GraphQL port
+EXPOSE 8080
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+  CMD curl -f http://localhost:8080/healthz || exit 1
+
+# Start Envio
+CMD ["envio", "start", "--config", "envio.yaml"]
