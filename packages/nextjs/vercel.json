@@ -1,3 +1,34 @@
 {
-  "installCommand": "yarn install"
+  "installCommand": "yarn install",
+  "buildCommand": "yarn build",
+  "framework": "nextjs",
+  "functions": {
+    "app/api/arbitro/**/*.ts": {
+      "maxDuration": 30
+    }
+  },
+  "env": {
+    "ARBITRO_PRIVATE_KEY": "@arbitro-private-key",
+    "NEXT_PUBLIC_ESCROW_CONTRACT": "0x9486f6C9d28ECdd95aba5bfa6188Bbc104d89C3e",
+    "NEXT_PUBLIC_SPONSOR_POOL_CONTRACT": "0x64A47d84dE05B9Efda4F63Fbca2Fc8cEb96E6816"
+  },
+  "headers": [
+    {
+      "source": "/api/arbitro/(.*)",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET, POST, OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "Content-Type, Authorization"
+        }
+      ]
+    }
+  ]
 }
