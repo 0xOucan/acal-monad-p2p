@@ -1,9 +1,12 @@
 import { GraphQLClient } from "graphql-request";
 
 // Environment-aware endpoint configuration
-// Use live Envio endpoint or fallback to proxy
+// Use local Envio in dev, deployed endpoint in production
 const ENVIO_GRAPHQL_ENDPOINT =
-  process.env.NEXT_PUBLIC_ENVIO_ENDPOINT || "https://indexer.dev.hyperindex.xyz/f43f628/v1/graphql";
+  process.env.NEXT_PUBLIC_ENVIO_ENDPOINT ||
+  (process.env.NODE_ENV === "development"
+    ? "http://localhost:8080/v1/graphql" // Local Envio dev server
+    : "/api/graphql-proxy"); // Fallback proxy
 
 export const graphqlClient = new GraphQLClient(ENVIO_GRAPHQL_ENDPOINT, {
   headers: {
