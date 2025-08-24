@@ -85,7 +85,7 @@ export function useAllOrders(limit = 100) {
 
         const response = await executeGraphQLQuery<GetAllOrdersResponse>(GET_ALL_ORDERS, { first: limit });
 
-        const convertedOrders = response.orders.map(convertOrder);
+        const convertedOrders = (response.orders || response.Order || []).map(convertOrder);
         setOrders(convertedOrders);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to fetch orders");
@@ -170,7 +170,7 @@ export function useOrdersByStatus(status: keyof typeof STATUS_MAP, limit = 100) 
           first: limit,
         });
 
-        const convertedOrders = response.orders.map(convertOrder);
+        const convertedOrders = response.Order.map(convertOrder);
         setOrders(convertedOrders);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to fetch orders by status");
@@ -211,7 +211,7 @@ export function useOrdersByMaker(maker: string, limit = 100) {
           first: limit,
         });
 
-        const convertedOrders = response.orders.map(convertOrder);
+        const convertedOrders = response.Order.map(convertOrder);
         setOrders(convertedOrders);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to fetch orders by maker");
@@ -254,7 +254,7 @@ export function useOrdersByTaker(taker: string, limit = 100) {
           first: limit,
         });
 
-        const convertedOrders = response.orders.map(convertOrder);
+        const convertedOrders = response.Order.map(convertOrder);
         setOrders(convertedOrders);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to fetch orders by taker");
@@ -294,9 +294,9 @@ export function useGlobalStats() {
 
         const response = await executeGraphQLQuery<GetGlobalStatsResponse>(GET_GLOBAL_STATS);
 
-        // Handle both single object and array response from GraphQL
-        const stats = response.globalStats;
-        setStats(Array.isArray(stats) && stats.length > 0 ? stats[0] : stats);
+        // Handle array response from GraphQL
+        const stats = response.GlobalStats;
+        setStats(Array.isArray(stats) && stats.length > 0 ? stats[0] : null);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to fetch global stats");
         // Set default stats to prevent crashes

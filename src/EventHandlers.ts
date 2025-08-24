@@ -48,8 +48,8 @@ AcalEscrow.OrderCreated.handler(async ({ event, context }: any) => {
     id: id.toString(),
     maker: maker.toLowerCase(),
     taker: undefined,
-    crHash: null, // Not available in current event
-    hashQR: null, // Not available in current event
+    crHash: undefined, // Not available in event signature
+    hashQR: undefined, // Not available in event signature
     mxn: mxn,
     mon: mon,
     expiry: expiry,

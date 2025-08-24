@@ -51,8 +51,8 @@ export interface GlobalStats {
 
 // GraphQL Queries
 export const GET_ALL_ORDERS = gql`
-  query GetAllOrders($first: Int = 100, $orderBy: Order_orderBy = createdAt, $orderDirection: OrderDirection = desc) {
-    orders(first: $first, orderBy: $orderBy, orderDirection: $orderDirection) {
+  query GetAllOrders($first: Int = 100) {
+    Order(limit: $first) {
       id
       maker
       taker
@@ -104,7 +104,7 @@ export const GET_ORDER_BY_ID = gql`
 
 export const GET_ORDERS_BY_STATUS = gql`
   query GetOrdersByStatus($status: OrderStatus!, $first: Int = 100) {
-    orders(where: { status: $status }, first: $first, orderBy: createdAt, orderDirection: desc) {
+    Order(where: { status: { _eq: $status } }, limit: $first, order_by: { createdAt: desc }) {
       id
       maker
       taker
@@ -126,7 +126,7 @@ export const GET_ORDERS_BY_STATUS = gql`
 
 export const GET_ORDERS_BY_MAKER = gql`
   query GetOrdersByMaker($maker: String!, $first: Int = 100) {
-    orders(where: { maker: $maker }, first: $first, orderBy: createdAt, orderDirection: desc) {
+    Order(where: { maker: { _eq: $maker } }, limit: $first, order_by: { createdAt: desc }) {
       id
       maker
       taker
@@ -148,7 +148,7 @@ export const GET_ORDERS_BY_MAKER = gql`
 
 export const GET_ORDERS_BY_TAKER = gql`
   query GetOrdersByTaker($taker: String!, $first: Int = 100) {
-    orders(where: { taker: $taker }, first: $first, orderBy: createdAt, orderDirection: desc) {
+    Order(where: { taker: { _eq: $taker } }, limit: $first, order_by: { createdAt: desc }) {
       id
       maker
       taker
@@ -173,7 +173,7 @@ export const GET_ORDERS_BY_TAKER = gql`
 
 export const GET_GLOBAL_STATS = gql`
   query GetGlobalStats {
-    globalStats(id: "global") {
+    GlobalStats(where: { id: { _eq: "global" } }) {
       id
       totalOrders
       openOrders
@@ -190,7 +190,7 @@ export const GET_GLOBAL_STATS = gql`
 
 export const GET_ORDER_EVENTS = gql`
   query GetOrderEvents($orderId: BigInt!, $first: Int = 50) {
-    orderEvents(where: { orderId: $orderId }, first: $first, orderBy: blockTimestamp, orderDirection: desc) {
+    OrderEvent(where: { orderId: { _eq: $orderId } }, limit: $first, order_by: { blockTimestamp: desc }) {
       id
       orderId
       eventType
@@ -207,7 +207,7 @@ export const GET_ORDER_EVENTS = gql`
 
 export const GET_RECENT_ORDERS = gql`
   query GetRecentOrders($first: Int = 10) {
-    orders(first: $first, orderBy: createdAt, orderDirection: desc) {
+    Order(limit: $first, order_by: { createdAt: desc }) {
       id
       maker
       taker
@@ -222,7 +222,8 @@ export const GET_RECENT_ORDERS = gql`
 
 // Response types
 export interface GetAllOrdersResponse {
-  orders: Order[];
+  orders?: Order[];
+  Order?: Order[];
 }
 
 export interface GetOrderByIdResponse {
@@ -230,25 +231,25 @@ export interface GetOrderByIdResponse {
 }
 
 export interface GetOrdersByStatusResponse {
-  orders: Order[];
+  Order: Order[];
 }
 
 export interface GetOrdersByMakerResponse {
-  orders: Order[];
+  Order: Order[];
 }
 
 export interface GetOrdersByTakerResponse {
-  orders: Order[];
+  Order: Order[];
 }
 
 export interface GetGlobalStatsResponse {
-  globalStats: GlobalStats | null;
+  GlobalStats: GlobalStats[];
 }
 
 export interface GetOrderEventsResponse {
-  orderEvents: OrderEvent[];
+  OrderEvent: OrderEvent[];
 }
 
 export interface GetRecentOrdersResponse {
-  orders: Order[];
+  Order: Order[];
 }

@@ -9,40 +9,44 @@ function getFallbackResponse(body: any) {
   if (query.includes("GlobalStats")) {
     return {
       data: {
-        globalStats: {
-          id: "global",
-          totalOrders: "0",
-          openOrders: "0",
-          lockedOrders: "0",
-          completedOrders: "0",
-          cancelledOrders: "0",
-          disputedOrders: "0",
-          totalVolumeMXN: "0",
-          totalVolumeMON: "0",
-          lastUpdated: "0",
-        },
+        GlobalStats: [
+          {
+            id: "global",
+            totalOrders: "0",
+            openOrders: "0",
+            lockedOrders: "0",
+            completedOrders: "0",
+            cancelledOrders: "0",
+            disputedOrders: "0",
+            totalVolumeMXN: "0",
+            totalVolumeMON: "0",
+            lastUpdated: "0",
+          },
+        ],
       },
     };
   }
 
-  if (query.includes("orders")) {
+  if (query.includes("Order") && !query.includes("Event")) {
     return {
       data: {
-        orders: [],
+        Order: [],
       },
     };
   }
 
-  if (query.includes("orderEvents")) {
+  if (query.includes("OrderEvent")) {
     return {
       data: {
-        orderEvents: [],
+        OrderEvent: [],
       },
     };
   }
 
   return {
-    data: {},
+    data: {
+      Order: [],
+    },
     message: "Envio indexer is not available. Using fallback data.",
   };
 }
