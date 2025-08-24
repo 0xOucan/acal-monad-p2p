@@ -1,12 +1,8 @@
 import { GraphQLClient } from "graphql-request";
 
 // Environment-aware endpoint configuration
-// Always use the proxy in browser environment to avoid CORS and connection issues
-const ENVIO_GRAPHQL_ENDPOINT =
-  process.env.NEXT_PUBLIC_ENVIO_ENDPOINT ||
-  (typeof window !== "undefined"
-    ? "/api/graphql-proxy" // Use proxy in browser (client-side)
-    : "http://localhost:8080/v1/graphql"); // Direct connection for server-side
+// Hardcoded Envio endpoint for production deployment
+const ENVIO_GRAPHQL_ENDPOINT = "https://indexer.bigdevenergy.link/e3b8b9bb-7b8c-4e82-8b0b-7b8c4e828b0b/v1/graphql";
 
 export const graphqlClient = new GraphQLClient(ENVIO_GRAPHQL_ENDPOINT, {
   headers: {
