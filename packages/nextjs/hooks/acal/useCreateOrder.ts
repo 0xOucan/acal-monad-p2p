@@ -7,7 +7,9 @@ import { ParsedSpinQR } from "~~/utils/spinQR";
 export function useCreateOrder() {
   const [isCreating, setIsCreating] = useState(false);
 
-  const { writeContractAsync: writeAcalEscrow } = useScaffoldWriteContract("AcalEscrow");
+  const { writeContractAsync: writeAcalEscrow } = useScaffoldWriteContract({
+    contractName: "AcalEscrow",
+  });
 
   const createOrder = async (qrData: ParsedSpinQR) => {
     if (!qrData) throw new Error("QR data is required");

@@ -9,7 +9,9 @@ const TAKER_BOND = parseEther("0.05"); // 0.05 MON
 export function useLockOrder() {
   const [isLocking, setIsLocking] = useState(false);
 
-  const { writeContractAsync: writeAcalEscrow } = useScaffoldWriteContract("AcalEscrow");
+  const { writeContractAsync: writeAcalEscrow } = useScaffoldWriteContract({
+    contractName: "AcalEscrow",
+  });
 
   const lockOrder = async (orderId: number, orderMon: bigint) => {
     setIsLocking(true);

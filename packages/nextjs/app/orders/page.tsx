@@ -32,7 +32,7 @@ const OrderCard: React.FC<OrderCardProps> = ({ orderId, onLockOrder, isLocking, 
   }
 
   const isExpired = Number(order.expiry) * 1000 < Date.now();
-  const isMaker = order.maker.toLowerCase() === connectedAddress?.toLowerCase();
+  const isMaker = connectedAddress ? order.maker.toLowerCase() === connectedAddress.toLowerCase() : false;
   const canLock = order.status === ORDER_STATUS.OPEN && !isExpired && !isMaker;
 
   const getStatusIcon = () => {
