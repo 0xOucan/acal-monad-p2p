@@ -38,8 +38,6 @@ let registerContractHandlers = (
               (Types.AcalEscrow.OrderCreated.register() :> Internal.eventConfig),
               (Types.AcalEscrow.OrderLocked.register() :> Internal.eventConfig),
               (Types.AcalEscrow.OrderCompleted.register() :> Internal.eventConfig),
-              (Types.AcalEscrow.OrderCancelled.register() :> Internal.eventConfig),
-              (Types.AcalEscrow.OrderDisputed.register() :> Internal.eventConfig),
             ],
             startBlock: None,
           },
@@ -47,11 +45,11 @@ let registerContractHandlers = (
         let chain = ChainMap.Chain.makeUnsafe(~chainId=10143)
         {
           Config.confirmedBlockThreshold: 200,
-          startBlock: 32680036,
+          startBlock: 32750000,
           endBlock: None,
           chain,
           contracts,
-          sources: NetworkSources.evm(~chain, ~contracts=[{name: "AcalEscrow",events: [Types.AcalEscrow.OrderCreated.register(), Types.AcalEscrow.OrderLocked.register(), Types.AcalEscrow.OrderCompleted.register(), Types.AcalEscrow.OrderCancelled.register(), Types.AcalEscrow.OrderDisputed.register()],abi: Types.AcalEscrow.abi}], ~hyperSync=Some("https://10143.hypersync.xyz"), ~allEventSignatures=[Types.AcalEscrow.eventSignatures]->Belt.Array.concatMany, ~shouldUseHypersyncClientDecoder=true, ~rpcs=[])
+          sources: NetworkSources.evm(~chain, ~contracts=[{name: "AcalEscrow",events: [Types.AcalEscrow.OrderCreated.register(), Types.AcalEscrow.OrderLocked.register(), Types.AcalEscrow.OrderCompleted.register()],abi: Types.AcalEscrow.abi}], ~hyperSync=Some("https://10143.hypersync.xyz"), ~allEventSignatures=[Types.AcalEscrow.eventSignatures]->Belt.Array.concatMany, ~shouldUseHypersyncClientDecoder=true, ~rpcs=[])
         }
       },
     ]

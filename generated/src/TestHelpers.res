@@ -159,14 +159,10 @@ module AcalEscrow = {
 
     @genType
     type createMockArgs = {
-      @as("orderId")
-      orderId?: bigint,
+      @as("id")
+      id?: bigint,
       @as("maker")
       maker?: Address.t,
-      @as("crHash")
-      crHash?: string,
-      @as("hashQR")
-      hashQR?: string,
       @as("mxn")
       mxn?: bigint,
       @as("mon")
@@ -179,10 +175,8 @@ module AcalEscrow = {
     @genType
     let createMockEvent = args => {
       let {
-        ?orderId,
+        ?id,
         ?maker,
-        ?crHash,
-        ?hashQR,
         ?mxn,
         ?mon,
         ?expiry,
@@ -191,10 +185,8 @@ module AcalEscrow = {
 
       let params = 
       {
-       orderId: orderId->Belt.Option.getWithDefault(0n),
+       id: id->Belt.Option.getWithDefault(0n),
        maker: maker->Belt.Option.getWithDefault(TestHelpers_MockAddresses.defaultAddress),
-       crHash: crHash->Belt.Option.getWithDefault("foo"),
-       hashQR: hashQR->Belt.Option.getWithDefault("foo"),
        mxn: mxn->Belt.Option.getWithDefault(0n),
        mon: mon->Belt.Option.getWithDefault(0n),
        expiry: expiry->Belt.Option.getWithDefault(0n),
@@ -217,25 +209,29 @@ module AcalEscrow = {
 
     @genType
     type createMockArgs = {
-      @as("orderId")
-      orderId?: bigint,
+      @as("id")
+      id?: bigint,
       @as("taker")
       taker?: Address.t,
+      @as("value")
+      value?: bigint,
       mockEventData?: EventFunctions.mockEventData,
     }
 
     @genType
     let createMockEvent = args => {
       let {
-        ?orderId,
+        ?id,
         ?taker,
+        ?value,
         ?mockEventData,
       } = args
 
       let params = 
       {
-       orderId: orderId->Belt.Option.getWithDefault(0n),
+       id: id->Belt.Option.getWithDefault(0n),
        taker: taker->Belt.Option.getWithDefault(TestHelpers_MockAddresses.defaultAddress),
+       value: value->Belt.Option.getWithDefault(0n),
       }
 ->(Utils.magic: Types.AcalEscrow.OrderLocked.eventArgs => Internal.eventParams)
 
@@ -255,21 +251,21 @@ module AcalEscrow = {
 
     @genType
     type createMockArgs = {
-      @as("orderId")
-      orderId?: bigint,
+      @as("id")
+      id?: bigint,
       mockEventData?: EventFunctions.mockEventData,
     }
 
     @genType
     let createMockEvent = args => {
       let {
-        ?orderId,
+        ?id,
         ?mockEventData,
       } = args
 
       let params = 
       {
-       orderId: orderId->Belt.Option.getWithDefault(0n),
+       id: id->Belt.Option.getWithDefault(0n),
       }
 ->(Utils.magic: Types.AcalEscrow.OrderCompleted.eventArgs => Internal.eventParams)
 
@@ -278,74 +274,6 @@ module AcalEscrow = {
         ~mockEventData,
         ~register=(Types.AcalEscrow.OrderCompleted.register :> unit => Internal.eventConfig),
       )->(Utils.magic: Internal.event => Types.AcalEscrow.OrderCompleted.event)
-    }
-  }
-
-  module OrderCancelled = {
-    @genType
-    let processEvent: EventFunctions.eventProcessor<Types.AcalEscrow.OrderCancelled.event> = EventFunctions.makeEventProcessor(
-      ~register=(Types.AcalEscrow.OrderCancelled.register :> unit => Internal.eventConfig),
-    )
-
-    @genType
-    type createMockArgs = {
-      @as("orderId")
-      orderId?: bigint,
-      mockEventData?: EventFunctions.mockEventData,
-    }
-
-    @genType
-    let createMockEvent = args => {
-      let {
-        ?orderId,
-        ?mockEventData,
-      } = args
-
-      let params = 
-      {
-       orderId: orderId->Belt.Option.getWithDefault(0n),
-      }
-->(Utils.magic: Types.AcalEscrow.OrderCancelled.eventArgs => Internal.eventParams)
-
-      EventFunctions.makeEventMocker(
-        ~params,
-        ~mockEventData,
-        ~register=(Types.AcalEscrow.OrderCancelled.register :> unit => Internal.eventConfig),
-      )->(Utils.magic: Internal.event => Types.AcalEscrow.OrderCancelled.event)
-    }
-  }
-
-  module OrderDisputed = {
-    @genType
-    let processEvent: EventFunctions.eventProcessor<Types.AcalEscrow.OrderDisputed.event> = EventFunctions.makeEventProcessor(
-      ~register=(Types.AcalEscrow.OrderDisputed.register :> unit => Internal.eventConfig),
-    )
-
-    @genType
-    type createMockArgs = {
-      @as("orderId")
-      orderId?: bigint,
-      mockEventData?: EventFunctions.mockEventData,
-    }
-
-    @genType
-    let createMockEvent = args => {
-      let {
-        ?orderId,
-        ?mockEventData,
-      } = args
-
-      let params = 
-      {
-       orderId: orderId->Belt.Option.getWithDefault(0n),
-      }
-->(Utils.magic: Types.AcalEscrow.OrderDisputed.eventArgs => Internal.eventParams)
-
-      EventFunctions.makeEventMocker(
-        ~params,
-        ~mockEventData,
-        ~register=(Types.AcalEscrow.OrderDisputed.register :> unit => Internal.eventConfig),
-      )->(Utils.magic: Internal.event => Types.AcalEscrow.OrderDisputed.event)
     }
   }
 

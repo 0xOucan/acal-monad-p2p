@@ -196,13 +196,13 @@ module Order = {
     cancelledAt: option<bigint>,
     completedAt: option<bigint>,
     completionTxHash: option<string>,
-    crHash: string,
+    crHash: option<string>,
     createdAt: bigint,
     creationTxHash: string,
     disputeTxHash: option<string>,
     disputedAt: option<bigint>,
     expiry: bigint,
-    hashQR: string,
+    hashQR: option<string>,
     id: id,
     lockTxHash: option<string>,
     lockedAt: option<bigint>,
@@ -218,13 +218,13 @@ module Order = {
     cancelledAt: s.field("cancelledAt", S.null(BigInt.schema)),
     completedAt: s.field("completedAt", S.null(BigInt.schema)),
     completionTxHash: s.field("completionTxHash", S.null(S.string)),
-    crHash: s.field("crHash", S.string),
+    crHash: s.field("crHash", S.null(S.string)),
     createdAt: s.field("createdAt", BigInt.schema),
     creationTxHash: s.field("creationTxHash", S.string),
     disputeTxHash: s.field("disputeTxHash", S.null(S.string)),
     disputedAt: s.field("disputedAt", S.null(BigInt.schema)),
     expiry: s.field("expiry", BigInt.schema),
-    hashQR: s.field("hashQR", S.string),
+    hashQR: s.field("hashQR", S.null(S.string)),
     id: s.field("id", S.string),
     lockTxHash: s.field("lockTxHash", S.null(S.string)),
     lockedAt: s.field("lockedAt", S.null(BigInt.schema)),
@@ -288,9 +288,9 @@ module Order = {
       mkField(
       "crHash", 
       Text,
-      ~fieldSchema=S.string,
+      ~fieldSchema=S.null(S.string),
       
-      
+      ~isNullable,
       
       
       
@@ -348,9 +348,9 @@ module Order = {
       mkField(
       "hashQR", 
       Text,
-      ~fieldSchema=S.string,
+      ~fieldSchema=S.null(S.string),
       
-      
+      ~isNullable,
       
       
       

@@ -2,8 +2,8 @@ type Order @entity {
   id: ID! # orderId
   maker: String! # Address
   taker: String # Address (nullable until locked)
-  crHash: String! # bytes32
-  hashQR: String! # bytes32
+  crHash: String # bytes32 (nullable - not emitted in event)
+  hashQR: String # bytes32 (nullable - not emitted in event)
   mxn: BigInt! # Amount in MXN
   mon: BigInt! # Amount in MON
   expiry: BigInt! # Expiry timestamp

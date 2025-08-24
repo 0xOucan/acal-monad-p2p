@@ -41,15 +41,15 @@ const isOrderExpired = (expiry: bigint): boolean => {
 };
 
 AcalEscrow.OrderCreated.handler(async ({ event, context }: any) => {
-  const { orderId, maker, crHash, hashQR, mxn, mon, expiry } = event.params;
+  const { id, maker, mxn, mon, expiry } = event.params;
   
   // Create new order
   const order: Order_t = {
-    id: orderId.toString(),
+    id: id.toString(),
     maker: maker.toLowerCase(),
     taker: undefined,
-    crHash: crHash,
-    hashQR: hashQR,
+    crHash: null, // Not available in current event
+    hashQR: null, // Not available in current event
     mxn: mxn,
     mon: mon,
     expiry: expiry,
@@ -69,7 +69,7 @@ AcalEscrow.OrderCreated.handler(async ({ event, context }: any) => {
   // Create order event
   const orderEvent: OrderEvent_t = {
     id: `${event.transaction.hash}-${event.logIndex}`,
-    orderId: orderId,
+    orderId: id,
     eventType: "CREATED" as OrderEventType_t,
     maker: maker.toLowerCase(),
     taker: undefined,
@@ -98,10 +98,10 @@ AcalEscrow.OrderCreated.handler(async ({ event, context }: any) => {
 });
 
 AcalEscrow.OrderLocked.handler(async ({ event, context }: any) => {
-  const { orderId, taker } = event.params;
+  const { id, taker, value } = event.params;
   
   // Update existing order
-  const order = await context.Order.get(orderId.toString());
+  const order = await context.Order.get(id.toString());
   if (order) {
     const updatedOrder: Order_t = {
       ...order,
@@ -114,7 +114,7 @@ AcalEscrow.OrderLocked.handler(async ({ event, context }: any) => {
     // Create order event
     const orderEvent: OrderEvent_t = {
       id: `${event.transaction.hash}-${event.logIndex}`,
-      orderId: orderId,
+      orderId: id,
       eventType: "LOCKED" as OrderEventType_t,
       maker: order.maker,
       taker: taker.toLowerCase(),
@@ -142,10 +142,10 @@ AcalEscrow.OrderLocked.handler(async ({ event, context }: any) => {
 });
 
 AcalEscrow.OrderCompleted.handler(async ({ event, context }: any) => {
-  const { orderId } = event.params;
+  const { id } = event.params;
   
   // Update existing order
-  const order = await context.Order.get(orderId.toString());
+  const order = await context.Order.get(id.toString());
   if (order) {
     const updatedOrder: Order_t = {
       ...order,
@@ -157,7 +157,7 @@ AcalEscrow.OrderCompleted.handler(async ({ event, context }: any) => {
     // Create order event
     const orderEvent: OrderEvent_t = {
       id: `${event.transaction.hash}-${event.logIndex}`,
-      orderId: orderId,
+      orderId: id,
       eventType: "COMPLETED" as OrderEventType_t,
       maker: order.maker,
       taker: order.taker,
@@ -184,89 +184,3 @@ AcalEscrow.OrderCompleted.handler(async ({ event, context }: any) => {
   }
 });
 
-AcalEscrow.OrderCancelled.handler(async ({ event, context }: any) => {
-  const { orderId } = event.params;
-  
-  // Update existing order
-  const order = await context.Order.get(orderId.toString());
-  if (order) {
-    const updatedOrder: Order_t = {
-      ...order,
-      status: "CANCELLED" as OrderStatus_t,
-      cancelledAt: BigInt(event.block.timestamp),
-      cancellationTxHash: event.transaction.hash,
-    };
-
-    // Create order event
-    const orderEvent: OrderEvent_t = {
-      id: `${event.transaction.hash}-${event.logIndex}`,
-      orderId: orderId,
-      eventType: "CANCELLED" as OrderEventType_t,
-      maker: order.maker,
-      taker: order.taker,
-      blockNumber: BigInt(event.block.number),
-      blockTimestamp: BigInt(event.block.timestamp),
-      transactionHash: event.transaction.hash,
-      gasUsed: BigInt(event.transaction.gasUsed || 0),
-      gasPrice: BigInt(event.transaction.gasPrice || 0),
-    };
-
-    // Update global stats
-    const stats = await getOrCreateGlobalStats(context);
-    const newStats: GlobalStats_t = {
-      ...stats,
-      openOrders: order.status === "OPEN" ? stats.openOrders - 1n : stats.openOrders,
-      lockedOrders: order.status === "LOCKED" ? stats.lockedOrders - 1n : stats.lockedOrders,
-      cancelledOrders: stats.cancelledOrders + 1n,
-      lastUpdated: BigInt(event.block.timestamp),
-    };
-
-    // Save entities
-    context.Order.set(updatedOrder);
-    context.OrderEvent.set(orderEvent);
-    context.GlobalStats.set(newStats);
-  }
-});
-
-AcalEscrow.OrderDisputed.handler(async ({ event, context }: any) => {
-  const { orderId } = event.params;
-  
-  // Update existing order
-  const order = await context.Order.get(orderId.toString());
-  if (order) {
-    const updatedOrder: Order_t = {
-      ...order,
-      status: "DISPUTED" as OrderStatus_t,
-      disputedAt: BigInt(event.block.timestamp),
-      disputeTxHash: event.transaction.hash,
-    };
-
-    // Create order event
-    const orderEvent: OrderEvent_t = {
-      id: `${event.transaction.hash}-${event.logIndex}`,
-      orderId: orderId,
-      eventType: "DISPUTED" as OrderEventType_t,
-      maker: order.maker,
-      taker: order.taker,
-      blockNumber: BigInt(event.block.number),
-      blockTimestamp: BigInt(event.block.timestamp),
-      transactionHash: event.transaction.hash,
-      gasUsed: BigInt(event.transaction.gasUsed || 0),
-      gasPrice: BigInt(event.transaction.gasPrice || 0),
-    };
-
-    // Update global stats
-    const stats = await getOrCreateGlobalStats(context);
-    const newStats: GlobalStats_t = {
-      ...stats,
-      lockedOrders: order.status === "LOCKED" ? stats.lockedOrders - 1n : stats.lockedOrders,
-      disputedOrders: stats.disputedOrders + 1n,
-      lastUpdated: BigInt(event.block.timestamp),
-    };
-
-    // Save entities
-    context.Order.set(updatedOrder);
-    context.OrderEvent.set(orderEvent);
-    context.GlobalStats.set(newStats);
-  }
-});

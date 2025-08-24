@@ -44,8 +44,6 @@ let publicConfig = ChainMap.fromArrayUnsafe([
             Types.AcalEscrow.OrderCreated.name,
             Types.AcalEscrow.OrderLocked.name,
             Types.AcalEscrow.OrderCompleted.name,
-            Types.AcalEscrow.OrderCancelled.name,
-            Types.AcalEscrow.OrderDisputed.name,
           ],
         }
       ),
@@ -56,7 +54,7 @@ let publicConfig = ChainMap.fromArrayUnsafe([
       {
         confirmedBlockThreshold: 200,
         syncSource: HyperSync({endpointUrl: "https://10143.hypersync.xyz"}),
-        startBlock: 32680036,
+        startBlock: 32750000,
         contracts
       }
     )
