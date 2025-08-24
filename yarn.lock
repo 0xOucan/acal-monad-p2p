@@ -8247,44 +8247,44 @@ __metadata:
   languageName: node
   linkType: hard
 
-"envio-darwin-arm64@npm:v2.27.6":
-  version: 2.27.6
-  resolution: "envio-darwin-arm64@npm:2.27.6"
+"envio-darwin-arm64@npm:v2.25.0":
+  version: 2.25.0
+  resolution: "envio-darwin-arm64@npm:2.25.0"
   conditions: os=darwin & cpu=arm64
   languageName: node
   linkType: hard
 
-"envio-darwin-x64@npm:v2.27.6":
-  version: 2.27.6
-  resolution: "envio-darwin-x64@npm:2.27.6"
+"envio-darwin-x64@npm:v2.25.0":
+  version: 2.25.0
+  resolution: "envio-darwin-x64@npm:2.25.0"
   conditions: os=darwin & cpu=x64
   languageName: node
   linkType: hard
 
-"envio-linux-arm64@npm:v2.27.6":
-  version: 2.27.6
-  resolution: "envio-linux-arm64@npm:2.27.6"
+"envio-linux-arm64@npm:v2.25.0":
+  version: 2.25.0
+  resolution: "envio-linux-arm64@npm:2.25.0"
   conditions: os=linux & cpu=arm64
   languageName: node
   linkType: hard
 
-"envio-linux-x64@npm:v2.27.6":
-  version: 2.27.6
-  resolution: "envio-linux-x64@npm:2.27.6"
+"envio-linux-x64@npm:v2.25.0":
+  version: 2.25.0
+  resolution: "envio-linux-x64@npm:2.25.0"
   conditions: os=linux & cpu=x64
   languageName: node
   linkType: hard
 
-"envio@npm:latest":
-  version: 2.27.6
-  resolution: "envio@npm:2.27.6"
+"envio@npm:2.25.0":
+  version: 2.25.0
+  resolution: "envio@npm:2.25.0"
   dependencies:
     "@envio-dev/hypersync-client": 0.6.5
     bignumber.js: 9.1.2
-    envio-darwin-arm64: v2.27.6
-    envio-darwin-x64: v2.27.6
-    envio-linux-arm64: v2.27.6
-    envio-linux-x64: v2.27.6
+    envio-darwin-arm64: v2.25.0
+    envio-darwin-x64: v2.25.0
+    envio-linux-arm64: v2.25.0
+    envio-linux-x64: v2.25.0
     pino: 8.16.1
     pino-pretty: 10.2.3
     prom-client: 15.0.0
@@ -8302,7 +8302,7 @@ __metadata:
       optional: true
   bin:
     envio: bin.js
-  checksum: 1fe61dc570b732f496ee37ff4059eb6d02d0e8ecb09dc23bdea69da13f764aefc5aa2ff9311d8c05acd4891d821802141a601dc289451af5cfa8bf4a469534e8
+  checksum: b2ec03bf1eb3845f982c0e69edd28312e01dc762a4eb5d4ed549613cbec6475294cb7b414106e2419d3af0652c1a0fcaca891ccc0f60a290e6bfcb75ba0ff143
   languageName: node
   linkType: hard
 
@@ -14899,7 +14899,7 @@ __metadata:
   resolution: "se-2@workspace:."
   dependencies:
     concurrently: ^9.2.0
-    envio: latest
+    envio: 2.25.0
     husky: ~9.1.6
     lint-staged: ~13.2.2
   languageName: unknown
