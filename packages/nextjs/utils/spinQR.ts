@@ -121,6 +121,58 @@ export function formatMonAmount(monWei: bigint): string {
 }
 
 /**
- * Example SPIN QR for testing
+ * Generates a unique test SPIN QR with 100 MXN
+ * @returns A unique test SPIN QR string
  */
-export const EXAMPLE_SPIN_QR = `{"TipoOperacion":"0004","VersionQR":"01.01","FechaExpiracionQR":"25/12/25 23:59:59","FechaCreacionQR":"24/08/24 19:15:17","EmisorQR":"101","Monto":400,"Concepto":"","Operacion":{"Mensaje":"","CR":"1018899255004007","Comisiones":"12","CadenaEncriptada":"","Aux1":"","Aux2":""}}`;
+export function generateTestSpinQR(): string {
+  // Generate unique CR based on timestamp
+  const timestamp = Date.now();
+  const uniqueCR = `10${timestamp.toString().slice(-10)}007`; // Format: 10XXXXXXXXX007
+
+  // Set expiry to 1 year from now
+  const expiry = new Date();
+  expiry.setFullYear(expiry.getFullYear() + 1);
+  const expiryStr =
+    expiry
+      .toLocaleDateString("es-MX", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "2-digit",
+      })
+      .replace(/\//g, "/") + " 23:59:59";
+
+  // Current date
+  const now =
+    new Date()
+      .toLocaleDateString("es-MX", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "2-digit",
+      })
+      .replace(/\//g, "/") + ` ${new Date().toTimeString().slice(0, 8)}`;
+
+  const testQR = {
+    TipoOperacion: "0004",
+    VersionQR: "01.01",
+    FechaExpiracionQR: expiryStr,
+    FechaCreacionQR: now,
+    EmisorQR: "101",
+    Monto: 100, // Always 100 MXN
+    Concepto: "",
+    Operacion: {
+      Mensaje: "",
+      CR: uniqueCR,
+      Comisiones: "12",
+      CadenaEncriptada: "",
+      Aux1: "",
+      Aux2: "",
+    },
+  };
+
+  return JSON.stringify(testQR);
+}
+
+/**
+ * Example SPIN QR for testing (deprecated - use generateTestSpinQR instead)
+ */
+export const EXAMPLE_SPIN_QR = `{"TipoOperacion":"0004","VersionQR":"01.01","FechaExpiracionQR":"25/12/25 23:59:59","FechaCreacionQR":"24/08/24 19:15:17","EmisorQR":"101","Monto":100,"Concepto":"","Operacion":{"Mensaje":"","CR":"1018899255004007","Comisiones":"12","CadenaEncriptada":"","Aux1":"","Aux2":""}}`;

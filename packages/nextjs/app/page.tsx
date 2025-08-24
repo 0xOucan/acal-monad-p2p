@@ -1,15 +1,23 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import type { NextPage } from "next";
 import toast from "react-hot-toast";
 import { useAccount } from "wagmi";
-import { CurrencyDollarIcon, QrCodeIcon, ShieldCheckIcon } from "@heroicons/react/24/outline";
+import { CurrencyDollarIcon, ListBulletIcon, QrCodeIcon, ShieldCheckIcon } from "@heroicons/react/24/outline";
 import { QRScanner } from "~~/components/QRScanner";
 import { Address } from "~~/components/scaffold-eth";
 import { useCreateOrder } from "~~/hooks/acal/useCreateOrder";
 import { useNextOrderId } from "~~/hooks/acal/useOrders";
-import { EXAMPLE_SPIN_QR, ParsedSpinQR, formatMonAmount, isSpinQRValid, mxnToMon, parseSpinQR } from "~~/utils/spinQR";
+import {
+  ParsedSpinQR,
+  formatMonAmount,
+  generateTestSpinQR,
+  isSpinQRValid,
+  mxnToMon,
+  parseSpinQR,
+} from "~~/utils/spinQR";
 
 const Home: NextPage = () => {
   const { address: connectedAddress, isConnected } = useAccount();
@@ -66,17 +74,31 @@ const Home: NextPage = () => {
   };
 
   const testWithExampleQR = () => {
-    handleQRScan(EXAMPLE_SPIN_QR);
+    const uniqueTestQR = generateTestSpinQR();
+    handleQRScan(uniqueTestQR);
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#002147] to-[#003366] text-white">
-      <div className="container mx-auto px-4 py-8">
+    <div className="min-h-screen acal-bg text-white">
+      <div className="container mx-auto px-4 py-8 relative z-10">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-[#FFD700] mb-2 pixel-font">ACAL</h1>
-          <p className="text-xl text-[#40E0D0] mb-4">Intercambio P2P MON ↔ MXN</p>
-          <p className="text-sm text-gray-300">Usa OXXO para convertir pesos a criptomonedas</p>
+          <div className="flex items-center justify-between mb-4">
+            <div></div> {/* Spacer */}
+            <div>
+              <h1 className="text-4xl font-bold text-[#FFD700] mb-2 pixel-font">🛶 ACAL</h1>
+              <p className="text-lg text-[#40E0D0]">Tu canoa a Monad</p>
+            </div>
+            <Link
+              href="/orders"
+              className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+              title="Ver todas las órdenes"
+            >
+              <ListBulletIcon className="h-6 w-6 text-[#40E0D0]" />
+            </Link>
+          </div>
+
+          <p className="text-sm text-gray-300 mb-4">De pesos mexicanos directo a Monad, en pocos clics</p>
 
           {isConnected && (
             <div className="mt-4 p-3 bg-black/30 rounded-lg">
@@ -88,8 +110,10 @@ const Home: NextPage = () => {
         {/* Main Content */}
         <div className="max-w-2xl mx-auto">
           {step === "scan" && (
-            <div className="bg-black/20 rounded-xl p-6 backdrop-blur">
-              <h2 className="text-2xl font-semibold text-center mb-6">Crear Orden de Venta</h2>
+            <div className="acal-card rounded-xl p-6">
+              <h2 className="text-2xl font-semibold text-center mb-6 text-[#FFD700] pixel-font">
+                🏺 Crear Orden de Venta
+              </h2>
 
               <div className="space-y-4 mb-6">
                 <div className="flex items-center space-x-3 p-3 bg-[#40E0D0]/10 rounded-lg">
@@ -119,15 +143,22 @@ const Home: NextPage = () => {
                   onClick={testWithExampleQR}
                   className="w-full bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-lg transition-colors text-sm"
                 >
-                  Usar QR de Prueba (400 MXN)
+                  🎲 Generar QR de Prueba (100 MXN)
                 </button>
+
+                <Link
+                  href="/orders"
+                  className="w-full bg-[#002147] border-2 border-[#40E0D0] hover:bg-[#40E0D0]/10 text-[#40E0D0] font-medium py-2 px-4 rounded-lg transition-colors text-sm text-center block"
+                >
+                  🛶 Ver Mercado de Órdenes
+                </Link>
               </div>
             </div>
           )}
 
           {step === "create" && scannedQR && (
-            <div className="bg-black/20 rounded-xl p-6 backdrop-blur">
-              <h2 className="text-2xl font-semibold text-center mb-6">Confirmar Orden</h2>
+            <div className="acal-card rounded-xl p-6">
+              <h2 className="text-2xl font-semibold text-center mb-6 text-[#FFD700] pixel-font">⚖️ Confirmar Orden</h2>
 
               <div className="space-y-4 mb-6">
                 <div className="bg-white/5 rounded-lg p-4">
@@ -186,9 +217,9 @@ const Home: NextPage = () => {
           )}
 
           {step === "confirm" && (
-            <div className="bg-black/20 rounded-xl p-6 backdrop-blur text-center">
-              <div className="text-6xl mb-4">🎉</div>
-              <h2 className="text-2xl font-semibold text-green-500 mb-4">¡Orden Creada!</h2>
+            <div className="acal-card rounded-xl p-6 text-center">
+              <div className="text-6xl mb-4">🏆</div>
+              <h2 className="text-2xl font-semibold text-[#FFD700] mb-4 pixel-font">¡Canoa Lista para Navegar!</h2>
               <p className="text-gray-300 mb-6">
                 Tu orden está ahora disponible en la red P2P. Los compradores pueden verla y tomar tu oferta.
               </p>
@@ -202,15 +233,24 @@ const Home: NextPage = () => {
                 </div>
               )}
 
-              <button
-                onClick={() => {
-                  setStep("scan");
-                  setScannedQR(null);
-                }}
-                className="bg-[#40E0D0] hover:bg-[#40E0D0]/80 text-black font-bold py-3 px-6 rounded-lg transition-colors"
-              >
-                Crear Nueva Orden
-              </button>
+              <div className="space-y-3">
+                <button
+                  onClick={() => {
+                    setStep("scan");
+                    setScannedQR(null);
+                  }}
+                  className="w-full bg-[#40E0D0] hover:bg-[#40E0D0]/80 text-black font-bold py-3 px-6 rounded-lg transition-colors"
+                >
+                  🛶 Crear Nueva Orden
+                </button>
+
+                <Link
+                  href="/orders"
+                  className="w-full bg-[#FFD700] hover:bg-[#FFD700]/80 text-black font-bold py-3 px-6 rounded-lg transition-colors text-center block"
+                >
+                  🏪 Ir al Mercado
+                </Link>
+              </div>
             </div>
           )}
 
@@ -240,7 +280,7 @@ const Home: NextPage = () => {
 
         {/* Footer */}
         <div className="text-center mt-12 text-sm text-gray-400">
-          <p>Powered by Monad Testnet • Seguro • Descentralizado</p>
+          <p className="pixel-font">🛶 Tu canoa a Monad • Navega con confianza 🌊</p>
         </div>
       </div>
 
