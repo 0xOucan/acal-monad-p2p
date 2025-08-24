@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const ENVIO_ENDPOINT = process.env.NEXT_PUBLIC_ENVIO_PRODUCTION_URL || "http://localhost:8080/v1/graphql";
+// Always use fallback data for Vercel deployment until Envio indexer is properly deployed
+const ENVIO_ENDPOINT = null; // Force fallback data
 
 // Fallback data for when Envio is not available
 function getFallbackResponse(body: any) {
@@ -57,25 +58,29 @@ export async function POST(request: NextRequest) {
   try {
     requestBody = await request.json();
 
-    const response = await fetch(ENVIO_ENDPOINT, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-      body: JSON.stringify(requestBody),
-    });
+    // If ENVIO_ENDPOINT is configured, try to use it
+    if (ENVIO_ENDPOINT) {
+      const response = await fetch(ENVIO_ENDPOINT, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify(requestBody),
+      });
 
-    if (!response.ok) {
-      console.warn("Envio service unavailable, using fallback data");
-      const fallbackData = getFallbackResponse(requestBody);
-      return NextResponse.json(fallbackData);
+      if (response.ok) {
+        const data = await response.json();
+        return NextResponse.json(data);
+      }
     }
 
-    const data = await response.json();
-    return NextResponse.json(data);
+    // Always fallback to mock data for demo
+    console.log("Using fallback data for demo");
+    const fallbackData = getFallbackResponse(requestBody);
+    return NextResponse.json(fallbackData);
   } catch (error) {
-    console.warn("Envio service error, using fallback data:", error);
+    console.warn("Using fallback data:", error);
     const fallbackData = getFallbackResponse(requestBody || {});
     return NextResponse.json(fallbackData);
   }

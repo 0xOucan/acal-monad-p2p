@@ -1,8 +1,8 @@
 import { GraphQLClient } from "graphql-request";
 
 // Environment-aware endpoint configuration
-// Hardcoded Envio endpoint for production deployment
-const ENVIO_GRAPHQL_ENDPOINT = "https://indexer.bigdevenergy.link/e3b8b9bb-7b8c-4e82-8b0b-7b8c4e828b0b/v1/graphql";
+// For development/demo: use proxy with fallback data until Envio is deployed
+const ENVIO_GRAPHQL_ENDPOINT = process.env.NEXT_PUBLIC_ENVIO_ENDPOINT || "/api/graphql-proxy";
 
 export const graphqlClient = new GraphQLClient(ENVIO_GRAPHQL_ENDPOINT, {
   headers: {
