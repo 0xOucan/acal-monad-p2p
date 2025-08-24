@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
-// Use the new Envio endpoint
-const ENVIO_ENDPOINT = "https://indexer.dev.hyperindex.xyz/58e5ae3/v1/graphql";
+// Force using fallback data to avoid CORS issues
+const ENVIO_ENDPOINT = null; // Always use fallback data
 
 // Fallback data for when Envio is not available
 function getFallbackResponse(body: any) {
@@ -58,7 +58,7 @@ function getFallbackResponse(body: any) {
             id: "15",
             maker: "0x843914e5bbdbe92296f2c3d895d424301b3517fc",
             taker: null,
-            crHash: "0xe1f2a3b4c5d6789012345678901234567890abcdef1234567890abcdef123457",
+            crHash: "0xf9bf171dcbec235e570e17122b45c2c9f7581548361c3cd1eba324e91180cf8d",
             hashQR: "0xb2c3d4e5f6789012345678901234567890abcdef1234567890abcdef1234567",
             mxn: "500",
             mon: "500000000000000000",
@@ -69,7 +69,7 @@ function getFallbackResponse(body: any) {
             completedAt: null,
             cancelledAt: null,
             disputedAt: null,
-            creationTxHash: "0xe1f2a3b4c5d6789012345678901234567890abcdef1234567890abcdef123457",
+            creationTxHash: "0xf9bf171dcbec235e570e17122b45c2c9f7581548361c3cd1eba324e91180cf8d",
             lockTxHash: null,
             completionTxHash: null,
             cancellationTxHash: null,
