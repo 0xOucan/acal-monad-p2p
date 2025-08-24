@@ -9,36 +9,34 @@ function getFallbackResponse(body: any) {
   if (query.includes("GlobalStats")) {
     return {
       data: {
-        GlobalStats: [
-          {
-            id: "global",
-            totalOrders: "0",
-            openOrders: "0",
-            lockedOrders: "0",
-            completedOrders: "0",
-            cancelledOrders: "0",
-            disputedOrders: "0",
-            totalVolumeMXN: "0",
-            totalVolumeMON: "0",
-            lastUpdated: "0",
-          },
-        ],
+        globalStats: {
+          id: "global",
+          totalOrders: "0",
+          openOrders: "0",
+          lockedOrders: "0",
+          completedOrders: "0",
+          cancelledOrders: "0",
+          disputedOrders: "0",
+          totalVolumeMXN: "0",
+          totalVolumeMON: "0",
+          lastUpdated: "0",
+        },
       },
     };
   }
 
-  if (query.includes("Order")) {
+  if (query.includes("orders")) {
     return {
       data: {
-        Order: [],
+        orders: [],
       },
     };
   }
 
-  if (query.includes("OrderEvent")) {
+  if (query.includes("orderEvents")) {
     return {
       data: {
-        OrderEvent: [],
+        orderEvents: [],
       },
     };
   }
