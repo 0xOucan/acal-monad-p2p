@@ -139,39 +139,62 @@ Obsidiana:  #1C1C1C  /* Raíz Cultural / Poder */
 git clone https://github.com/tu-usuario/acal-monad-p2p.git
 cd acal-monad-p2p
 
-# 2. Instalar dependencias
-yarn install
+# 2. Configuración automática (recomendado)
+./setup-dev.sh          # Linux/Mac
+# o
+.\setup-dev.ps1         # Windows PowerShell
 
-# 3. Configurar variables de entorno
-cp packages/foundry/arbitro-server/config.env.template packages/foundry/arbitro-server/.env
-# Editar .env con tus claves privadas
-
-# 4. Compilar contratos
-cd packages/foundry
-forge build
-
-# 5. Ejecutar tests
-forge test
-
-# 6. Iniciar frontend
-yarn start
+# 3. Iniciar desarrollo (Frontend + Servidor Arbitro)
+yarn dev:full
 ```
 
-### **Desarrollo Local:**
+### **Configuración Manual:**
 
 ```bash
-# Terminal 1: Red local
+# 1. Instalar dependencias
+yarn install
+
+# 2. Configurar variables de entorno
+cp packages/foundry/arbitro-server/config.env.template packages/foundry/arbitro-server/.env
+# Editar .env con tu ARBITRO_PRIVATE_KEY
+
+# 3. Compilar contratos
+yarn compile
+
+# 4. Ejecutar tests
+yarn test:full
+```
+
+### **Opciones de Desarrollo:**
+
+```bash
+# 🚀 Concurrente (Recomendado para testing)
+yarn dev:full           # Frontend + Servidor Arbitro
+yarn dev:monad          # Blockchain Local + Frontend + Servidor Arbitro
+
+# 🧪 Testing
+yarn test:full          # Tests contratos + Tests Arbitro
+
+# 🔧 Servicios individuales
+yarn start              # Solo frontend
+yarn arbitro:start      # Solo servidor arbitro
+yarn chain              # Solo blockchain local
+```
+
+### **Setup Multi-Terminal Tradicional:**
+
+```bash
+# Terminal 1: Red local (opcional)
 yarn chain
 
-# Terminal 2: Deploy contratos
+# Terminal 2: Deploy contratos (si usas chain local)
 yarn deploy
 
 # Terminal 3: Frontend
 yarn start
 
-# Terminal 4: Servidor Arbitro (opcional)
-cd packages/foundry/arbitro-server
-npm start
+# Terminal 4: Servidor Arbitro
+yarn arbitro:start
 ```
 
 ---

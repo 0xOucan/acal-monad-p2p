@@ -61,14 +61,21 @@ async function initializeBlockchain() {
     console.log(`🚀 Using RPC: ${CONFIG.MONAD_RPC_URLS[currentRpcIndex]}`);
 }
 
-// ABI for AcalEscrow (minimal)
+// ABI for AcalEscrow (complete)
 const ESCROW_ABI = [
     "function resolveDispute(uint256 id, uint8 verdict) external",
     "function orders(uint256) external view returns (address maker, address taker, bytes32 cr, bytes32 hashQR, uint256 mxn, uint256 mon, uint256 expiry, uint8 status, uint256 makerBond, uint256 takerBond)",
     "function arbitro() external view returns (address)",
+    "function nextId() external view returns (uint256)",
+    "function disputeOrder(uint256 id, bytes32 evidence) external",
+    "function createOrder(bytes32 crHash, bytes32 hashQR, uint256 mxn, uint256 expiry) external payable returns (uint256)",
+    "function lockOrder(uint256 id) external payable",
+    "function completeOrder(uint256 id, bytes[] calldata sigs, tuple(uint256 orderId, uint8 actionType, bytes32 evidenceHash, uint256 deadline) a) external",
+    "event OrderCreated(uint256 indexed id, address indexed maker, uint256 mxn, uint256 mon)",
     "event OrderLocked(uint256 indexed id, address indexed taker, uint256 amount)",
     "event OrderResolved(uint256 indexed id)",
-    "event OrderDisputed(uint256 indexed id)"
+    "event OrderDisputed(uint256 indexed id)",
+    "event OrderCompleted(uint256 indexed id, uint8 verdict)"
 ];
 
 let escrowContract = null;
@@ -86,16 +93,64 @@ const ORDER_STATUS = {
     EXPIRED: 5
 };
 
-// ============ BLOCKCHAIN EVENT MONITORING (SIMPLIFIED) ============
+// ============ BLOCKCHAIN EVENT MONITORING (ACTIVE) ============
 async function startEventMonitoring() {
-    console.log('🔍 Event monitoring disabled (using API-based flow)');
-    console.log('💡 Orders will be tracked via API calls instead of blockchain events');
+    console.log('🔍 Starting active dispute monitoring...');
     
-    // Note: Event monitoring disabled due to RPC provider limitations
-    // In production, use polling or webhook-based approaches
+    // Use polling approach to monitor for disputed orders
+    const monitorDisputedOrders = async () => {
+        try {
+            // Get next order ID to know the range to check
+            const nextId = await escrowContract.nextId();
+            
+            // Check recent orders for disputed status
+            for (let i = Math.max(0, Number(nextId) - 10); i < Number(nextId); i++) {
+                try {
+                    const order = await escrowContract.orders(i);
+                    const status = Number(order[7]); // status is at index 7
+                    
+                    // If order is disputed (status = 4) and not in our processed list
+                    if (status === ORDER_STATUS.DISPUTED && !processedDisputes.has(i)) {
+                        console.log(`🚨 DISPUTE DETECTED: Order ${i} needs resolution!`);
+                        
+                        // Mark as processed to avoid double processing
+                        processedDisputes.add(i);
+                        
+                        // Auto-resolve in favor of maker (payment confirmed via OXXO)
+                        console.log(`🤖 Auto-resolving order ${i} in favor of maker...`);
+                        
+                        const resolved = await autoResolveOrder(i, 0); // 0 = Complete (favor maker)
+                        
+                        if (resolved) {
+                            console.log(`✅ Order ${i} auto-resolved successfully!`);
+                        } else {
+                            console.log(`❌ Failed to auto-resolve order ${i}`);
+                            processedDisputes.delete(i); // Remove from processed to retry later
+                        }
+                    }
+                } catch (error) {
+                    // Skip invalid orders
+                    continue;
+                }
+            }
+            
+        } catch (error) {
+            console.error('❌ Error monitoring disputes:', error.message);
+        }
+    };
     
-    console.log('✅ Ready for API-based order tracking');
+    // Start monitoring every 10 seconds
+    console.log('⏰ Polling for disputes every 10 seconds...');
+    setInterval(monitorDisputedOrders, 10000);
+    
+    // Initial check
+    setTimeout(monitorDisputedOrders, 2000);
+    
+    console.log('✅ Active dispute monitoring started!');
 }
+
+// Track processed disputes to avoid double-processing
+const processedDisputes = new Set();
 
 // ============ API ENDPOINTS ============
 
