@@ -7,6 +7,7 @@ import toast from "react-hot-toast";
 import { formatEther } from "viem";
 import { useAccount } from "wagmi";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
+import { PWAInstallPrompt } from "~~/components/PWAInstall";
 import { Address } from "~~/components/scaffold-eth";
 import { useLockOrder } from "~~/hooks/acal/useLockOrder";
 import {
@@ -239,6 +240,9 @@ const OrdersPage: NextPage = () => {
           <p>🛶 Tu canoa a Monad • Navega con confianza</p>
         </div>
       </div>
+
+      {/* PWA Install Prompt */}
+      <PWAInstallPrompt />
 
       <style jsx global>{`
         .acal-bg {

@@ -88,17 +88,9 @@ module EventFunctions = {
   module MockTransaction = {
     @genType
     type t = {
-      gasPrice?: option<bigint>,
-      gasUsed?: bigint,
-      hash?: string,
-      transactionIndex?: int,
     }
 
     let toTransaction = (_mock: t) => {
-      gasPrice: _mock.gasPrice->Belt.Option.getWithDefault(None),
-      gasUsed: _mock.gasUsed->Belt.Option.getWithDefault(0n),
-      hash: _mock.hash->Belt.Option.getWithDefault("foo"),
-      transactionIndex: _mock.transactionIndex->Belt.Option.getWithDefault(0),
     }->(Utils.magic: Types.AggregatedTransaction.t => Internal.eventTransaction)
   }
 

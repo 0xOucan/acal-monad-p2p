@@ -6,6 +6,7 @@ import type { NextPage } from "next";
 import toast from "react-hot-toast";
 import { useAccount } from "wagmi";
 import { CurrencyDollarIcon, ListBulletIcon, QrCodeIcon, ShieldCheckIcon } from "@heroicons/react/24/outline";
+import { PWAInstallPrompt } from "~~/components/PWAInstall";
 import { QRScanner } from "~~/components/QRScanner";
 import { SponsorPoolDebug } from "~~/components/SponsorPoolDebug";
 import { Address } from "~~/components/scaffold-eth";
@@ -287,6 +288,9 @@ const Home: NextPage = () => {
           <p className="pixel-font">🛶 Tu canoa a Monad • Navega con confianza 🌊</p>
         </div>
       </div>
+
+      {/* PWA Install Prompt */}
+      <PWAInstallPrompt />
 
       <style jsx global>{`
         .pixel-font {

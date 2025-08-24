@@ -102,9 +102,9 @@ type inMemoryStoreRowEntity<'entityType> =
 
 module Transaction = {
   @genType
-  type t = {hash: string, transactionIndex: int, gasUsed: bigint, gasPrice: option<bigint>}
+  type t = {}
 
-  let schema = S.object((s): t => {hash: s.field("hash", S.string), transactionIndex: s.field("transactionIndex", S.int), gasUsed: s.field("gasUsed", BigInt.nativeSchema), gasPrice: s.field("gasPrice", S.nullable(BigInt.nativeSchema))})
+  let schema = S.object((_): t => {})
 }
 
 module Block = {
@@ -135,7 +135,7 @@ module AggregatedBlock = {
 }
 module AggregatedTransaction = {
   @genType
-  type t = {gasPrice: option<bigint>, gasUsed: bigint, hash: string, transactionIndex: int}
+  type t = {}
 }
 
 @genType.as("EventLog")

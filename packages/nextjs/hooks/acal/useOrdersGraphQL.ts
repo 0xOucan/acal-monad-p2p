@@ -88,7 +88,7 @@ export function useAllOrders(limit = 100) {
 
         const response = await executeGraphQLQuery<GetAllOrdersResponse>(GET_ALL_ORDERS, { first: limit });
 
-        const convertedOrders = (response.orders || response.Order || []).map(convertOrder);
+        const convertedOrders = (response.Order || []).map(convertOrder);
         setOrders(convertedOrders);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to fetch orders");
