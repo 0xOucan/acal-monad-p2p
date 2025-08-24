@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {Test, console2} from "forge-std/Test.sol";
-import {AcalEscrow, ISponsorPool} from "../contracts/AcalEscrow.sol";
-import {SponsorPool} from "../contracts/SponsorPool.sol";
+import { Test, console2 } from "forge-std/Test.sol";
+import { AcalEscrow, ISponsorPool } from "../contracts/AcalEscrow.sol";
+import { SponsorPool } from "../contracts/SponsorPool.sol";
 
 contract AcalEscrowTest is Test {
     AcalEscrow escrow;
@@ -35,7 +35,7 @@ contract AcalEscrowTest is Test {
 
         // Seed sponsors
         vm.deal(address(this), 10 ether);
-        (bool ok, ) = payable(address(pool)).call{value: 5 ether}("");
+        (bool ok,) = payable(address(pool)).call{ value: 5 ether }("");
         require(ok, "seed");
     }
 
@@ -54,7 +54,7 @@ contract AcalEscrowTest is Test {
         uint256 mon = escrow.mxnToMon(100); // 1 ether
         uint256 takerBond = escrow.TAKER_BOND();
         vm.prank(taker);
-        escrow.lockOrder{value: mon + takerBond}(id);
+        escrow.lockOrder{ value: mon + takerBond }(id);
 
         // Complete with maker + taker signatures
         AcalEscrow.Action memory a = AcalEscrow.Action({
@@ -87,7 +87,7 @@ contract AcalEscrowTest is Test {
         uint256 mon = escrow.mxnToMon(100);
         uint256 takerBond = escrow.TAKER_BOND();
         vm.prank(taker);
-        escrow.lockOrder{value: mon + takerBond}(id);
+        escrow.lockOrder{ value: mon + takerBond }(id);
 
         // Cancel maker fault with taker + arbitro
         AcalEscrow.Action memory a = AcalEscrow.Action({
@@ -112,7 +112,7 @@ contract AcalEscrowTest is Test {
         uint256 mon = escrow.mxnToMon(100);
         uint256 takerBond = escrow.TAKER_BOND();
         vm.prank(taker);
-        escrow.lockOrder{value: mon + takerBond}(id);
+        escrow.lockOrder{ value: mon + takerBond }(id);
 
         vm.warp(block.timestamp + 2 days);
         uint256 takerBefore = taker.balance;
@@ -127,7 +127,7 @@ contract AcalEscrowTest is Test {
         uint256 mon = escrow.mxnToMon(100);
         uint256 takerBond = escrow.TAKER_BOND();
         vm.prank(taker);
-        escrow.lockOrder{value: mon + takerBond}(id);
+        escrow.lockOrder{ value: mon + takerBond }(id);
 
         // Disputa
         vm.prank(maker);

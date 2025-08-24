@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import {EIP712} from "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
-import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
+import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import { EIP712 } from "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
+import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
 interface ISponsorPool {
     function pullMakerBond(uint256 amount) external;
@@ -18,22 +18,34 @@ contract AcalEscrow is Ownable, ReentrancyGuard, EIP712 {
     using ECDSA for bytes32;
 
     // ====== Parámetros ======
-    uint256 public constant SUBSIDY = 0.12 ether;     // 0.12 MON
-    uint256 public constant MAKER_BOND = 0.05 ether;  // 0.05 MON (lo aporta SponsorPool)
-    uint256 public constant TAKER_BOND = 0.05 ether;  // 0.05 MON (lo aporta el taker)
+    uint256 public constant SUBSIDY = 0.12 ether; // 0.12 MON
+    uint256 public constant MAKER_BOND = 0.05 ether; // 0.05 MON (lo aporta SponsorPool)
+    uint256 public constant TAKER_BOND = 0.05 ether; // 0.05 MON (lo aporta el taker)
 
-    enum Status { Open, Locked, Completed, Cancelled, Disputed, Expired }
+    enum Status {
+        Open,
+        Locked,
+        Completed,
+        Cancelled,
+        Disputed,
+        Expired
+    }
 
-    enum ActionType { Complete, CancelMakerFault, CancelTakerFault, Dispute }
+    enum ActionType {
+        Complete,
+        CancelMakerFault,
+        CancelTakerFault,
+        Dispute
+    }
 
     struct Order {
         address maker;
         address taker;
-        bytes32 cr;        // keccak256(bytes(CR))
-        bytes32 hashQR;    // keccak256(jsonQR || salt)
-        uint256 mxn;       // [100..500]
-        uint256 mon;       // mxn * 1e16
-        uint256 expiry;    // <= now + 7d; además respeta el QR
+        bytes32 cr; // keccak256(bytes(CR))
+        bytes32 hashQR; // keccak256(jsonQR || salt)
+        uint256 mxn; // [100..500]
+        uint256 mon; // mxn * 1e16
+        uint256 expiry; // <= now + 7d; además respeta el QR
         Status status;
         uint256 makerBond; // 0.05
         uint256 takerBond; // 0.05 cuando se lockea
@@ -42,13 +54,12 @@ contract AcalEscrow is Ownable, ReentrancyGuard, EIP712 {
     struct Action {
         uint256 orderId;
         ActionType actionType; // 0..3
-        bytes32 evidenceHash;  // hash del ticket/fotos si aplica
-        uint256 deadline;      // anti-replay
+        bytes32 evidenceHash; // hash del ticket/fotos si aplica
+        uint256 deadline; // anti-replay
     }
 
-    bytes32 private constant _ACTION_TYPEHASH = keccak256(
-        "Action(uint256 orderId,uint8 actionType,bytes32 evidenceHash,uint256 deadline)"
-    );
+    bytes32 private constant _ACTION_TYPEHASH =
+        keccak256("Action(uint256 orderId,uint8 actionType,bytes32 evidenceHash,uint256 deadline)");
 
     ISponsorPool public immutable sponsorPool;
     address public arbitro; // address operador ACAL
@@ -66,10 +77,7 @@ contract AcalEscrow is Ownable, ReentrancyGuard, EIP712 {
     event OrderExpired(uint256 indexed id);
     event ArbitroChanged(address indexed oldA, address indexed newA);
 
-    constructor(address _sponsorPool, address _arbitro, address _owner)
-        EIP712("AcalEscrow", "1")
-        Ownable(_owner)
-    {
+    constructor(address _sponsorPool, address _arbitro, address _owner) EIP712("AcalEscrow", "1") Ownable(_owner) {
         require(_sponsorPool != address(0), "pool=0");
         sponsorPool = ISponsorPool(_sponsorPool);
         arbitro = _arbitro;
@@ -88,15 +96,8 @@ contract AcalEscrow is Ownable, ReentrancyGuard, EIP712 {
     }
 
     function _hashAction(Action memory a) internal view returns (bytes32) {
-        bytes32 structHash = keccak256(
-            abi.encode(
-                _ACTION_TYPEHASH,
-                a.orderId,
-                a.actionType,
-                a.evidenceHash,
-                a.deadline
-            )
-        );
+        bytes32 structHash =
+            keccak256(abi.encode(_ACTION_TYPEHASH, a.orderId, a.actionType, a.evidenceHash, a.deadline));
         return _hashTypedDataV4(structHash);
     }
 
@@ -169,10 +170,7 @@ contract AcalEscrow is Ownable, ReentrancyGuard, EIP712 {
         return count >= 2;
     }
 
-    function completeOrder(uint256 id, bytes[] calldata sigs, Action memory a)
-        external
-        nonReentrant
-    {
+    function completeOrder(uint256 id, bytes[] calldata sigs, Action memory a) external nonReentrant {
         Order storage o = orders[id];
         require(o.status == Status.Locked, "not Locked");
         require(a.actionType == ActionType.Complete, "wrong action");
@@ -192,15 +190,11 @@ contract AcalEscrow is Ownable, ReentrancyGuard, EIP712 {
         emit OrderCompleted(id);
     }
 
-    function cancelOrder(uint256 id, bytes[] calldata sigs, Action memory a)
-        external
-        nonReentrant
-    {
+    function cancelOrder(uint256 id, bytes[] calldata sigs, Action memory a) external nonReentrant {
         Order storage o = orders[id];
         require(o.status == Status.Locked, "not Locked");
         require(
-            a.actionType == ActionType.CancelMakerFault || a.actionType == ActionType.CancelTakerFault,
-            "wrong action"
+            a.actionType == ActionType.CancelMakerFault || a.actionType == ActionType.CancelTakerFault, "wrong action"
         );
         require(_check2of3(id, sigs, a), "need 2 of 3");
 
@@ -279,12 +273,12 @@ contract AcalEscrow is Ownable, ReentrancyGuard, EIP712 {
     }
 
     // --- Receive function to accept ETH ---
-    receive() external payable {}
+    receive() external payable { }
 
     // --- Internals ---
     function _safeTransfer(address to, uint256 amount) internal {
         if (amount == 0) return;
-        (bool ok, ) = payable(to).call{value: amount}("");
+        (bool ok,) = payable(to).call{ value: amount }("");
         require(ok, "xfer failed");
     }
 }

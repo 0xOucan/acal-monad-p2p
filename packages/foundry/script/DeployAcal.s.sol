@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {Script, console2} from "forge-std/Script.sol";
-import {SponsorPool} from "../contracts/SponsorPool.sol";
-import {AcalEscrow} from "../contracts/AcalEscrow.sol";
+import { Script, console2 } from "forge-std/Script.sol";
+import { SponsorPool } from "../contracts/SponsorPool.sol";
+import { AcalEscrow } from "../contracts/AcalEscrow.sol";
 
 /// Run:
 ///   forge script script/DeployAcal.s.sol:DeployAcal --rpc-url monad_testnet --account deployer --broadcast -vv
@@ -40,7 +40,7 @@ contract DeployAcal is Script {
         console2.log("Escrow address set in SponsorPool");
 
         // Fund the SponsorPool with the seed amount
-        (bool ok, ) = payable(address(pool)).call{value: sponsorSeed}("");
+        (bool ok,) = payable(address(pool)).call{ value: sponsorSeed }("");
         require(ok, "Failed to seed SponsorPool");
         console2.log("SponsorPool funded with", sponsorSeed, "wei");
 

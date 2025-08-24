@@ -9,6 +9,7 @@ import { useAccount } from "wagmi";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 import { PWAInstallPrompt } from "~~/components/PWAInstall";
 import { Address } from "~~/components/scaffold-eth";
+import { type CompleteOrderAction, useCompleteOrder } from "~~/hooks/acal/useCompleteOrder";
 import { useLockOrder } from "~~/hooks/acal/useLockOrder";
 import {
   type FrontendOrder,
@@ -21,17 +22,31 @@ import {
 interface OrderCardProps {
   order: FrontendOrder;
   onLockOrder: (orderId: number, orderMon: bigint) => void;
+  onClaimOrder: (orderId: number) => void;
   isLocking: boolean;
+  isClaiming: boolean;
   lockingOrderId?: number;
+  claimingOrderId?: number;
 }
 
-const OrderCard: React.FC<OrderCardProps> = ({ order, onLockOrder, isLocking, lockingOrderId }) => {
+const OrderCard: React.FC<OrderCardProps> = ({
+  order,
+  onLockOrder,
+  onClaimOrder,
+  isLocking,
+  isClaiming,
+  lockingOrderId,
+  claimingOrderId,
+}) => {
   const { address: connectedAddress } = useAccount();
 
   const isExpired = order ? Number(order.expiry) * 1000 < Date.now() : false;
   const isMaker =
     connectedAddress && order?.maker ? order.maker.toLowerCase() === connectedAddress.toLowerCase() : false;
+  const isTaker =
+    connectedAddress && order?.taker ? order.taker.toLowerCase() === connectedAddress.toLowerCase() : false;
   const canLock = order && order.status === ORDER_STATUS.OPEN && !isExpired && !isMaker;
+  const canClaim = order && order.status === ORDER_STATUS.LOCKED && isTaker;
 
   const getStatusIcon = () => {
     if (!order) return "❓";
@@ -95,6 +110,16 @@ const OrderCard: React.FC<OrderCardProps> = ({ order, onLockOrder, isLocking, lo
           <div className="text-xs">{order?.maker && <Address address={order.maker} size="xs" />}</div>
         </div>
         <div>
+          <span className="text-gray-400">Taker:</span>
+          <div className="text-xs">
+            {order?.taker && order.taker !== "0x0000000000000000000000000000000000000000" ? (
+              <Address address={order.taker} size="xs" />
+            ) : (
+              <span className="text-gray-500">Sin asignar</span>
+            )}
+          </div>
+        </div>
+        <div>
           <span className="text-gray-400">Expira:</span>
           <div className="text-xs">
             {order ? new Date(Number(order.expiry) * 1000).toLocaleDateString("es-MX") : "-"}
@@ -112,10 +137,26 @@ const OrderCard: React.FC<OrderCardProps> = ({ order, onLockOrder, isLocking, lo
         <button
           onClick={() => onLockOrder(parseInt(order.id), order.mon)}
           disabled={isLocking}
-          className="w-full bg-[#FFD700] hover:bg-[#FFD700]/80 disabled:bg-gray-600 disabled:cursor-not-allowed text-black font-bold py-3 px-4 rounded-lg transition-colors"
+          className="w-full bg-[#FFD700] hover:bg-[#FFD700]/80 disabled:bg-gray-600 disabled:cursor-not-allowed text-black font-bold py-3 px-4 rounded-lg transition-colors mb-2"
         >
           {isLocking && lockingOrderId === parseInt(order.id) ? "Bloqueando..." : "⛵ Tomar Orden"}
         </button>
+      )}
+
+      {canClaim && order && (
+        <button
+          onClick={() => onClaimOrder(parseInt(order.id))}
+          disabled={isClaiming}
+          className="w-full bg-green-500 hover:bg-green-500/80 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-bold py-3 px-4 rounded-lg transition-colors"
+        >
+          {isClaiming && claimingOrderId === parseInt(order.id) ? "Reclamando..." : "🏆 Reclamar Orden"}
+        </button>
+      )}
+
+      {isTaker && order && order.status === ORDER_STATUS.LOCKED && (
+        <div className="bg-green-500/10 rounded-lg p-2 text-center mt-2">
+          <span className="text-sm text-green-400">Tu orden bloqueada - ¡Lista para reclamar!</span>
+        </div>
       )}
 
       {order && order.status === ORDER_STATUS.OPEN && isExpired && (
@@ -129,10 +170,103 @@ const OrderCard: React.FC<OrderCardProps> = ({ order, onLockOrder, isLocking, lo
 
 const OrdersPage: NextPage = () => {
   const router = useRouter();
-  const { orders, isLoading: isLoadingOrders, error: ordersError } = useAllOrders();
+  const { orders: graphqlOrders, isLoading: isLoadingOrders, error: ordersError } = useAllOrders();
   const { stats } = useGlobalStats();
   const { lockOrder, isLocking } = useLockOrder();
+  const { completeOrder, isCompleting } = useCompleteOrder();
   const [lockingOrderId, setLockingOrderId] = useState<number | undefined>();
+  const [claimingOrderId, setClaimingOrderId] = useState<number | undefined>();
+
+  // Fallback orders from your contract data for development
+  const fallbackOrders: FrontendOrder[] = [
+    {
+      id: "24",
+      maker: "0xc095c7cA2B56b0F0DC572d5d4A9Eb1B37f4306a0",
+      taker: undefined,
+      cr: "0x6a06a5f29b82a9c854b983873ac5ab07d7ac10a344d321569c0a0cb8e492cdc2",
+      hashQR: "0x2410d412de8e1d9930cdce09c889a9a033ec0db99d71499cc51e75345c05919f",
+      mxn: BigInt(100),
+      mon: BigInt("1000000000000000000"), // 1 ETH
+      expiry: BigInt(1756655545),
+      status: 0, // OPEN
+      makerBond: BigInt("50000000000000000"), // 0.05 ETH
+      takerBond: BigInt("50000000000000000"), // 0.05 ETH
+      createdAt: BigInt(Math.floor(Date.now() / 1000)),
+    },
+    {
+      id: "25",
+      maker: "0x843914e5BBdbE92296F2c3D895D424301b3517fC",
+      taker: undefined,
+      cr: "0x6f901bfddce870364d8c166246fd0b983aa3ac261f848e63b7565e6ec24356e2",
+      hashQR: "0x4153212a34646101ccf06369113ba3ffcd2dd6c65913a5f7241070675d5dfce2",
+      mxn: BigInt(100),
+      mon: BigInt("1000000000000000000"), // 1 ETH
+      expiry: BigInt(1756653032),
+      status: 0, // OPEN
+      makerBond: BigInt("50000000000000000"), // 0.05 ETH
+      takerBond: BigInt("50000000000000000"), // 0.05 ETH
+      createdAt: BigInt(Math.floor(Date.now() / 1000)),
+    },
+    {
+      id: "26",
+      maker: "0x843914e5BBdbE92296F2c3D895D424301b3517fC",
+      taker: undefined,
+      cr: "0x2f3a273d4360ee6224386c7ef8b238982ce5b2c7ec1f664dc3b42c1c110193fa",
+      hashQR: "0x8fe5516233d10f58edc59596deb904d324413355ad4d7454be72d2e7f5e27524",
+      mxn: BigInt(100),
+      mon: BigInt("1000000000000000000"), // 1 ETH
+      expiry: BigInt(1756652111),
+      status: 0, // OPEN
+      makerBond: BigInt("50000000000000000"), // 0.05 ETH
+      takerBond: BigInt("50000000000000000"), // 0.05 ETH
+      createdAt: BigInt(Math.floor(Date.now() / 1000)),
+    },
+    {
+      id: "21",
+      maker: "0x843914e5BBdbE92296F2c3D895D424301b3517fC",
+      taker: undefined,
+      cr: "0x2f3a273d4360ee6224386c7ef8b238982ce5b2c7ec1f664dc3b42c1c110193fa",
+      hashQR: "0x8fe5516233d10f58edc59596deb904d324413355ad4d7454be72d2e7f5e27524",
+      mxn: BigInt(100),
+      mon: BigInt("1000000000000000000"), // 1 ETH
+      expiry: BigInt(1756652111),
+      status: 0, // OPEN
+      makerBond: BigInt("50000000000000000"), // 0.05 ETH
+      takerBond: BigInt("50000000000000000"), // 0.05 ETH
+      createdAt: BigInt(Math.floor(Date.now() / 1000)),
+    },
+    {
+      id: "20",
+      maker: "0x843914e5BBdbE92296F2c3D895D424301b3517fC",
+      taker: undefined,
+      cr: "0x4e7110662d4f002f334f46351dfcb7d39d9a7e2342f1b3519b2e7b4ba41cdabb",
+      hashQR: "0x0a199776820a711945d14fe3898c63d2f704c27fdab67b99ce50ba211c628af9",
+      mxn: BigInt(100),
+      mon: BigInt("1000000000000000000"), // 1 ETH
+      expiry: BigInt(1756651606),
+      status: 0, // OPEN
+      makerBond: BigInt("50000000000000000"), // 0.05 ETH
+      takerBond: BigInt("50000000000000000"), // 0.05 ETH
+      createdAt: BigInt(Math.floor(Date.now() / 1000)),
+    },
+    {
+      id: "19",
+      maker: "0x843914e5BBdbE92296F2c3D895D424301b3517fC",
+      taker: undefined,
+      cr: "0x33244ccbb346a71e186412acafa4b9cd90e2bd7b40c94cec63556c8f7ff47358",
+      hashQR: "0xf62f33e2d0cefdb2eeef346e897c14c7cd074514fbbdc4689591daffa1fc16d5",
+      mxn: BigInt(100),
+      mon: BigInt("1000000000000000000"), // 1 ETH
+      expiry: BigInt(1756651031),
+      status: 0, // OPEN
+      makerBond: BigInt("50000000000000000"), // 0.05 ETH
+      takerBond: BigInt("50000000000000000"), // 0.05 ETH
+      createdAt: BigInt(Math.floor(Date.now() / 1000)),
+    },
+  ];
+
+  // Use GraphQL orders if available, otherwise fallback to hardcoded orders for development
+  const orders = graphqlOrders.length > 0 ? graphqlOrders : fallbackOrders;
 
   const handleLockOrder = async (orderId: number, orderMon: bigint) => {
     try {
@@ -150,17 +284,51 @@ const OrdersPage: NextPage = () => {
     }
   };
 
+  const handleClaimOrder = async (orderId: number) => {
+    try {
+      setClaimingOrderId(orderId);
+      const toastId = toast.loading("Reclamando orden...");
+
+      // For now, we'll create a simple successful completion action
+      // In a real implementation, this would involve QR code verification
+      const action: CompleteOrderAction = {
+        orderId: BigInt(orderId),
+        actionType: 0, // COMPLETE_SUCCESS
+        evidenceHash: "0x0000000000000000000000000000000000000000000000000000000000000000", // Placeholder
+        deadline: BigInt(Math.floor(Date.now() / 1000) + 3600), // 1 hour from now
+      };
+
+      // For demo purposes, using empty signatures array
+      // In production, this would require proper EIP-712 signatures
+      const signatures: `0x${string}`[] = [];
+      await completeOrder(orderId, signatures, action);
+
+      toast.success("¡Orden reclamada exitosamente!", { id: toastId });
+    } catch (error) {
+      console.error("Error claiming order:", error);
+      toast.error("Error al reclamar la orden: " + (error instanceof Error ? error.message : String(error)));
+    } finally {
+      setClaimingOrderId(undefined);
+    }
+  };
+
   return (
     <div className="min-h-screen acal-bg text-white">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
-        <div className="flex items-center mb-8">
-          <button onClick={() => router.back()} className="mr-4 p-2 hover:bg-white/10 rounded-lg transition-colors">
-            <ArrowLeftIcon className="h-6 w-6" />
-          </button>
-          <div>
-            <h1 className="text-3xl font-bold text-[#FFD700] pixel-font">🛶 Mercado ACAL</h1>
-            <p className="text-[#40E0D0] text-lg">Navega entre órdenes disponibles</p>
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center">
+            <button onClick={() => router.back()} className="mr-4 p-2 hover:bg-white/10 rounded-lg transition-colors">
+              <ArrowLeftIcon className="h-6 w-6" />
+            </button>
+            <div>
+              <h1 className="text-3xl font-bold text-[#FFD700] pixel-font">🛶 Mercado ACAL</h1>
+              <p className="text-[#40E0D0] text-lg">Navega entre órdenes disponibles</p>
+            </div>
+          </div>
+          <div className="text-right">
+            <div className="text-sm text-gray-400">Órdenes encontradas:</div>
+            <div className="text-2xl font-bold text-[#FFD700]">{orders.length}</div>
           </div>
         </div>
 
@@ -190,14 +358,18 @@ const OrdersPage: NextPage = () => {
           </div>
         </div>
 
-        {/* Error Display */}
+        {/* Error/Fallback Display */}
         {ordersError && (
-          <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 mb-8">
-            <div className="text-red-400 text-center">
-              <div className="text-2xl mb-2">⚠️</div>
-              <div className="font-semibold">Error al cargar órdenes</div>
-              <div className="text-sm mt-1">{ordersError}</div>
-              <div className="text-xs mt-2 text-gray-400">Asegúrate de que el indexador Envio esté ejecutándose</div>
+          <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4 mb-8">
+            <div className="text-yellow-400 text-center">
+              <div className="text-2xl mb-2">🔄</div>
+              <div className="font-semibold">Usando órdenes de desarrollo</div>
+              <div className="text-sm mt-1">
+                {graphqlOrders.length === 0
+                  ? "Mostrando órdenes hardcodeadas para desarrollo"
+                  : "GraphQL disponible - " + graphqlOrders.length + " órdenes cargadas"}
+              </div>
+              <div className="text-xs mt-2 text-gray-400">{ordersError}</div>
             </div>
           </div>
         )}
@@ -223,15 +395,21 @@ const OrdersPage: NextPage = () => {
               </button>
             </div>
           ) : (
-            orders.map(order => (
-              <OrderCard
-                key={order.id}
-                order={order}
-                onLockOrder={handleLockOrder}
-                isLocking={isLocking}
-                lockingOrderId={lockingOrderId}
-              />
-            ))
+            // Sort orders by ID descending to show newest first
+            orders
+              .sort((a, b) => parseInt(b.id) - parseInt(a.id))
+              .map(order => (
+                <OrderCard
+                  key={order.id}
+                  order={order}
+                  onLockOrder={handleLockOrder}
+                  onClaimOrder={handleClaimOrder}
+                  isLocking={isLocking}
+                  isClaiming={isCompleting}
+                  lockingOrderId={lockingOrderId}
+                  claimingOrderId={claimingOrderId}
+                />
+              ))
           )}
         </div>
 
