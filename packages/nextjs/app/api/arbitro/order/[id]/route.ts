@@ -29,8 +29,9 @@ async function createProviderWithFailover() {
   throw new Error("All RPC endpoints failed");
 }
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
+    const params = await context.params;
     const orderId = params.id;
 
     // Create provider with failover

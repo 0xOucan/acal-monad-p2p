@@ -89,8 +89,9 @@ async function autoResolveOrder(orderId: string, verdict: number) {
   }
 }
 
-export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
+    const params = await context.params;
     const orderId = params.id;
     const { verdict, reason } = await request.json();
 
