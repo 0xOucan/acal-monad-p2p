@@ -119,3 +119,119 @@
 .link:hover {
   opacity: 80%;
 }
+
+/* ACAL PWA Styles */
+.acal-bg {
+  background: linear-gradient(135deg, #002147 0%, #003366 100%);
+}
+
+.acal-card {
+  background: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(64, 224, 208, 0.1);
+}
+
+.acal-button-primary {
+  background: #40e0d0;
+  color: #000;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+.acal-button-primary:hover {
+  background: rgba(64, 224, 208, 0.8);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(64, 224, 208, 0.3);
+}
+
+.acal-button-gold {
+  background: #ffd700;
+  color: #000;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+.acal-button-gold:hover {
+  background: rgba(255, 215, 0, 0.8);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(255, 215, 0, 0.3);
+}
+
+.pixel-border {
+  border: 2px solid;
+  border-image: url("data:image/svg+xml,%3csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='m0,0h100v100h-100z' fill='none' stroke='%2340E0D0' stroke-width='2'/%3e%3c/svg%3e")
+    1;
+}
+
+.aztec-pattern {
+  background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23FFD700' fill-opacity='0.1' fill-rule='evenodd'%3E%3Cpath d='m0 40l40-40h-40v40zm0-40h40v40z'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* Mobile First Responsive Design */
+@media (max-width: 768px) {
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .acal-card {
+    margin: 0.5rem;
+  }
+
+  .text-4xl {
+    font-size: 2.5rem;
+  }
+}
+
+/* PWA Specific Styles */
+@media (display-mode: standalone) {
+  body {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* QR Scanner Styles */
+#qr-reader {
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+#qr-reader > div:first-child {
+  border-radius: 0.5rem;
+}
+
+#qr-reader video {
+  border-radius: 0.5rem;
+}
+
+/* Loading animations */
+.pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite alternate;
+}
+
+@keyframes pulse-glow {
+  from {
+    box-shadow: 0 0 5px rgba(64, 224, 208, 0.5);
+  }
+  to {
+    box-shadow:
+      0 0 20px rgba(64, 224, 208, 0.8),
+      0 0 30px rgba(64, 224, 208, 0.6);
+  }
+}
+
+/* Pixel art inspired elements */
+.pixel-shadow {
+  box-shadow:
+    2px 2px 0px rgba(0, 0, 0, 0.8),
+    4px 4px 0px rgba(0, 0, 0, 0.6),
+    6px 6px 0px rgba(0, 0, 0, 0.4);
+}
+
+.retro-text {
+  text-shadow:
+    1px 1px 0px rgba(0, 0, 0, 0.8),
+    2px 2px 0px rgba(0, 0, 0, 0.6),
+    3px 3px 0px rgba(0, 0, 0, 0.4);
+}
