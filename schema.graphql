@@ -1,0 +1,64 @@
+type Order @entity {
+  id: ID! # orderId
+  maker: String! # Address
+  taker: String # Address (nullable until locked)
+  crHash: String! # bytes32
+  hashQR: String! # bytes32
+  mxn: BigInt! # Amount in MXN
+  mon: BigInt! # Amount in MON
+  expiry: BigInt! # Expiry timestamp
+  status: OrderStatus! # Current status
+  createdAt: BigInt! # Block timestamp
+  lockedAt: BigInt # Block timestamp (nullable)
+  completedAt: BigInt # Block timestamp (nullable)
+  cancelledAt: BigInt # Block timestamp (nullable)
+  disputedAt: BigInt # Block timestamp (nullable)
+  creationTxHash: String! # Transaction hash
+  lockTxHash: String # Transaction hash (nullable)
+  completionTxHash: String # Transaction hash (nullable)
+  cancellationTxHash: String # Transaction hash (nullable)
+  disputeTxHash: String # Transaction hash (nullable)
+}
+
+enum OrderStatus {
+  OPEN
+  LOCKED
+  COMPLETED
+  CANCELLED
+  DISPUTED
+  EXPIRED
+}
+
+type OrderEvent @entity {
+  id: ID! # txHash-logIndex
+  orderId: BigInt!
+  eventType: OrderEventType!
+  maker: String
+  taker: String
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: String!
+  gasUsed: BigInt!
+  gasPrice: BigInt!
+}
+
+enum OrderEventType {
+  CREATED
+  LOCKED
+  COMPLETED
+  CANCELLED
+  DISPUTED
+}
+
+type GlobalStats @entity {
+  id: ID! # Always "global"
+  totalOrders: BigInt!
+  openOrders: BigInt!
+  lockedOrders: BigInt!
+  completedOrders: BigInt!
+  cancelledOrders: BigInt!
+  disputedOrders: BigInt!
+  totalVolumeMXN: BigInt!
+  totalVolumeMON: BigInt!
+  lastUpdated: BigInt!
+}

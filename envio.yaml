@@ -1,0 +1,25 @@
+name: acal-escrow-indexer
+description: "ACAL P2P Escrow Contract Indexer for Monad Testnet"
+
+networks:
+  - id: 10143 # Monad Testnet
+    start_block: 0
+    contracts:
+      - name: AcalEscrow
+        address: "0x9486f6C9d28ECdd95aba5bfa6188Bbc104d89C3e"
+        handler: src/EventHandlers.ts
+        events:
+          - event: OrderCreated(uint256 indexed orderId, address indexed maker, bytes32 crHash, bytes32 hashQR, uint256 mxn, uint256 mon, uint256 expiry)
+          - event: OrderLocked(uint256 indexed orderId, address indexed taker)
+          - event: OrderCompleted(uint256 indexed orderId)
+          - event: OrderCancelled(uint256 indexed orderId)
+          - event: OrderDisputed(uint256 indexed orderId)
+
+field_selection:
+  transaction_fields:
+    - "hash"
+    - "transactionIndex"
+    - "gasUsed"
+    - "gasPrice"
+    - "blockNumber"
+    - "blockTimestamp"

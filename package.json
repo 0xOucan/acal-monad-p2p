@@ -53,7 +53,12 @@
     "arbitro:test": "cd packages/foundry/arbitro-server && npm test",
     "dev:full": "concurrently -n \"FRONTEND,ARBITRO\" -c \"cyan,magenta\" \"yarn start\" \"yarn arbitro:start\"",
     "dev:monad": "concurrently -n \"CHAIN,FRONTEND,ARBITRO\" -c \"yellow,cyan,magenta\" \"yarn chain\" \"yarn start\" \"yarn arbitro:start\"",
-    "test:full": "concurrently -n \"CONTRACTS,ARBITRO\" -c \"green,magenta\" \"yarn foundry:test\" \"yarn arbitro:test\""
+    "test:full": "concurrently -n \"CONTRACTS,ARBITRO\" -c \"green,magenta\" \"yarn foundry:test\" \"yarn arbitro:test\"",
+    "envio:codegen": "envio codegen",
+    "envio:dev": "envio dev",
+    "envio:start": "envio start",
+    "envio:test": "envio test",
+    "envio:deploy": "envio deploy"
   },
   "devDependencies": {
     "concurrently": "^9.2.0",

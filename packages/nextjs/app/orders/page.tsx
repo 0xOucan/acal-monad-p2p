@@ -43,11 +43,13 @@ const OrderCard: React.FC<OrderCardProps> = ({ orderId, onLockOrder, isLocking, 
     );
   }
 
-  const isExpired = Number(order.expiry) * 1000 < Date.now();
-  const isMaker = connectedAddress ? order.maker.toLowerCase() === connectedAddress.toLowerCase() : false;
-  const canLock = order.status === ORDER_STATUS.OPEN && !isExpired && !isMaker;
+  const isExpired = order ? Number(order.expiry) * 1000 < Date.now() : false;
+  const isMaker =
+    connectedAddress && order?.maker ? order.maker.toLowerCase() === connectedAddress.toLowerCase() : false;
+  const canLock = order && order.status === ORDER_STATUS.OPEN && !isExpired && !isMaker;
 
   const getStatusIcon = () => {
+    if (!order) return "❓";
     switch (order.status) {
       case ORDER_STATUS.OPEN:
         return "🛶"; // Canoa vacía
@@ -65,6 +67,7 @@ const OrderCard: React.FC<OrderCardProps> = ({ orderId, onLockOrder, isLocking, 
   };
 
   const getStatusColor = () => {
+    if (!order) return "text-gray-400";
     switch (order.status) {
       case ORDER_STATUS.OPEN:
         return "text-[#40E0D0]";
@@ -88,27 +91,29 @@ const OrderCard: React.FC<OrderCardProps> = ({ orderId, onLockOrder, isLocking, 
           <span className="text-2xl">{getStatusIcon()}</span>
           <span className="text-lg font-bold text-[#FFD700]">#{orderId}</span>
         </div>
-        <span className={`text-sm font-medium ${getStatusColor()}`}>{getOrderStatusText(order.status)}</span>
+        <span className={`text-sm font-medium ${getStatusColor()}`}>
+          {order ? getOrderStatusText(order.status) : "Desconocido"}
+        </span>
       </div>
 
       <div className="grid grid-cols-2 gap-3 text-sm mb-4">
         <div>
           <span className="text-gray-400">Monto:</span>
-          <div className="text-white font-semibold">{order.mxn.toString()} MXN</div>
+          <div className="text-white font-semibold">{order?.mxn?.toString() || "0"} MXN</div>
         </div>
         <div>
           <span className="text-gray-400">MON:</span>
-          <div className="text-[#40E0D0] font-semibold">{formatEther(order.mon)}</div>
+          <div className="text-[#40E0D0] font-semibold">{order ? formatEther(order.mon) : "0"}</div>
         </div>
         <div>
           <span className="text-gray-400">Maker:</span>
-          <div className="text-xs">
-            <Address address={order.maker} size="xs" />
-          </div>
+          <div className="text-xs">{order?.maker && <Address address={order.maker} size="xs" />}</div>
         </div>
         <div>
           <span className="text-gray-400">Expira:</span>
-          <div className="text-xs">{new Date(Number(order.expiry) * 1000).toLocaleDateString("es-MX")}</div>
+          <div className="text-xs">
+            {order ? new Date(Number(order.expiry) * 1000).toLocaleDateString("es-MX") : "-"}
+          </div>
         </div>
       </div>
 
@@ -118,7 +123,7 @@ const OrderCard: React.FC<OrderCardProps> = ({ orderId, onLockOrder, isLocking, 
         </div>
       )}
 
-      {canLock && (
+      {canLock && order && (
         <button
           onClick={() => onLockOrder(orderId, order.mon)}
           disabled={isLocking}
@@ -128,7 +133,7 @@ const OrderCard: React.FC<OrderCardProps> = ({ orderId, onLockOrder, isLocking, 
         </button>
       )}
 
-      {order.status === ORDER_STATUS.OPEN && isExpired && (
+      {order && order.status === ORDER_STATUS.OPEN && isExpired && (
         <div className="bg-red-500/10 rounded-lg p-2 text-center">
           <span className="text-sm text-red-400">Orden Expirada</span>
         </div>
