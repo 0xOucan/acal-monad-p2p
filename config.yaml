@@ -2,7 +2,7 @@ name: acal-escrow-indexer
 description: "ACAL P2P Escrow Contract Indexer for Monad Testnet"
 
 networks:
-  - id: 10143 # Monad Testnet
+  - id: 10143
     start_block: 32750000
     contracts:
       - name: AcalEscrow
@@ -12,10 +12,3 @@ networks:
           - event: OrderCreated(uint256 indexed id, address indexed maker, uint256 mxn, uint256 mon, uint256 expiry)
           - event: OrderLocked(uint256 indexed id, address indexed taker, uint256 value)
           - event: OrderCompleted(uint256 indexed id)
-
-field_selection:
-  transaction_fields:
-    - "hash"
-    - "transactionIndex"
-    - "gasUsed"
-    - "gasPrice"
