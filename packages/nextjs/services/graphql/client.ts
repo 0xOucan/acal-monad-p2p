@@ -4,7 +4,7 @@ import { GraphQLClient } from "graphql-request";
 const ENVIO_GRAPHQL_ENDPOINT =
   process.env.NEXT_PUBLIC_ENVIO_ENDPOINT ||
   (process.env.NODE_ENV === "production"
-    ? process.env.NEXT_PUBLIC_ENVIO_PRODUCTION_URL || "https://envio-production-endpoint.herokuapp.com/v1/graphql"
+    ? "/api/graphql-proxy" // Use our GraphQL proxy in production
     : "http://localhost:8080/v1/graphql");
 
 export const graphqlClient = new GraphQLClient(ENVIO_GRAPHQL_ENDPOINT, {

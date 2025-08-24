@@ -2,9 +2,58 @@ import { NextRequest, NextResponse } from "next/server";
 
 const ENVIO_ENDPOINT = process.env.NEXT_PUBLIC_ENVIO_PRODUCTION_URL || "http://localhost:8080/v1/graphql";
 
+// Fallback data for when Envio is not available
+function getFallbackResponse(body: any) {
+  const query = body.query || "";
+
+  if (query.includes("GlobalStats")) {
+    return {
+      data: {
+        GlobalStats: [
+          {
+            id: "global",
+            totalOrders: "0",
+            openOrders: "0",
+            lockedOrders: "0",
+            completedOrders: "0",
+            cancelledOrders: "0",
+            disputedOrders: "0",
+            totalVolumeMXN: "0",
+            totalVolumeMON: "0",
+            lastUpdated: "0",
+          },
+        ],
+      },
+    };
+  }
+
+  if (query.includes("Order")) {
+    return {
+      data: {
+        Order: [],
+      },
+    };
+  }
+
+  if (query.includes("OrderEvent")) {
+    return {
+      data: {
+        OrderEvent: [],
+      },
+    };
+  }
+
+  return {
+    data: {},
+    message: "Envio indexer is not available. Using fallback data.",
+  };
+}
+
 export async function POST(request: NextRequest) {
+  let requestBody: any;
+
   try {
-    const body = await request.json();
+    requestBody = await request.json();
 
     const response = await fetch(ENVIO_ENDPOINT, {
       method: "POST",
@@ -12,31 +61,21 @@ export async function POST(request: NextRequest) {
         "Content-Type": "application/json",
         Accept: "application/json",
       },
-      body: JSON.stringify(body),
+      body: JSON.stringify(requestBody),
     });
 
     if (!response.ok) {
-      console.error("Envio GraphQL request failed:", response.status, response.statusText);
-      return NextResponse.json(
-        {
-          error: "Indexer service unavailable",
-          message: "Please try again later. The indexer may be syncing.",
-        },
-        { status: 503 },
-      );
+      console.warn("Envio service unavailable, using fallback data");
+      const fallbackData = getFallbackResponse(requestBody);
+      return NextResponse.json(fallbackData);
     }
 
     const data = await response.json();
     return NextResponse.json(data);
   } catch (error) {
-    console.error("GraphQL proxy error:", error);
-    return NextResponse.json(
-      {
-        error: "Service temporarily unavailable",
-        message: "The indexer service is currently unavailable. Please try again later.",
-      },
-      { status: 503 },
-    );
+    console.warn("Envio service error, using fallback data:", error);
+    const fallbackData = getFallbackResponse(requestBody || {});
+    return NextResponse.json(fallbackData);
   }
 }
 

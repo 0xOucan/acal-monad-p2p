@@ -294,7 +294,9 @@ export function useGlobalStats() {
 
         const response = await executeGraphQLQuery<GetGlobalStatsResponse>(GET_GLOBAL_STATS);
 
-        setStats(response.globalStats);
+        // Handle array response from GraphQL - take first item or null
+        const statsArray = response.globalStats;
+        setStats(Array.isArray(statsArray) && statsArray.length > 0 ? statsArray[0] : null);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to fetch global stats");
         // Set default stats to prevent crashes
