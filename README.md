@@ -139,39 +139,62 @@ Obsidian:    #1C1C1C  /* Cultural Root / Power */
 git clone https://github.com/your-username/acal-monad-p2p.git
 cd acal-monad-p2p
 
-# 2. Install dependencies
-yarn install
+# 2. Automatic setup (recommended)
+./setup-dev.sh          # Linux/Mac
+# or
+.\setup-dev.ps1         # Windows PowerShell
 
-# 3. Configure environment variables
-cp packages/foundry/arbitro-server/config.env.template packages/foundry/arbitro-server/.env
-# Edit .env with your private keys
-
-# 4. Compile contracts
-cd packages/foundry
-forge build
-
-# 5. Run tests
-forge test
-
-# 6. Start frontend
-yarn start
+# 3. Start development (Frontend + Arbitro Server)
+yarn dev:full
 ```
 
-### **Local Development:**
+### **Manual Setup:**
 
 ```bash
-# Terminal 1: Local network
+# 1. Install dependencies
+yarn install
+
+# 2. Configure environment variables
+cp packages/foundry/arbitro-server/config.env.template packages/foundry/arbitro-server/.env
+# Edit .env with your ARBITRO_PRIVATE_KEY
+
+# 3. Compile contracts
+yarn compile
+
+# 4. Run tests
+yarn test:full
+```
+
+### **Development Options:**
+
+```bash
+# 🚀 Concurrent (Recommended for testing)
+yarn dev:full           # Frontend + Arbitro Server
+yarn dev:monad          # Local Chain + Frontend + Arbitro Server
+
+# 🧪 Testing
+yarn test:full          # Contract tests + Arbitro tests
+
+# 🔧 Individual services
+yarn start              # Frontend only
+yarn arbitro:start      # Arbitro server only
+yarn chain              # Local blockchain only
+```
+
+### **Traditional Multi-Terminal Setup:**
+
+```bash
+# Terminal 1: Local network (optional)
 yarn chain
 
-# Terminal 2: Deploy contracts
+# Terminal 2: Deploy contracts (if using local chain)
 yarn deploy
 
 # Terminal 3: Frontend
 yarn start
 
-# Terminal 4: Arbitro Server (optional)
-cd packages/foundry/arbitro-server
-npm start
+# Terminal 4: Arbitro Server
+yarn arbitro:start
 ```
 
 ---

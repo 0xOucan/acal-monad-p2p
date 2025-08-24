@@ -47,9 +47,16 @@
     "vercel": "yarn workspace @se-2/nextjs vercel",
     "vercel:login": "yarn workspace @se-2/nextjs vercel:login",
     "vercel:yolo": "yarn workspace @se-2/nextjs vercel:yolo",
-    "verify": "yarn foundry:verify"
+    "verify": "yarn foundry:verify",
+    "arbitro:start": "cd packages/foundry/arbitro-server && npm start",
+    "arbitro:dev": "cd packages/foundry/arbitro-server && npm run dev",
+    "arbitro:test": "cd packages/foundry/arbitro-server && npm test",
+    "dev:full": "concurrently -n \"FRONTEND,ARBITRO\" -c \"cyan,magenta\" \"yarn start\" \"yarn arbitro:start\"",
+    "dev:monad": "concurrently -n \"CHAIN,FRONTEND,ARBITRO\" -c \"yellow,cyan,magenta\" \"yarn chain\" \"yarn start\" \"yarn arbitro:start\"",
+    "test:full": "concurrently -n \"CONTRACTS,ARBITRO\" -c \"green,magenta\" \"yarn foundry:test\" \"yarn arbitro:test\""
   },
   "devDependencies": {
+    "concurrently": "^9.2.0",
     "husky": "~9.1.6",
     "lint-staged": "~13.2.2"
   },

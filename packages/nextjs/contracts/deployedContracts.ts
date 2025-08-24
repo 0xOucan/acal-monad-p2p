@@ -181,6 +181,27 @@ const deployedContracts = {
         },
         {
           type: "function",
+          name: "completeOrder",
+          inputs: [
+            { name: "id", type: "uint256", internalType: "uint256" },
+            { name: "sigs", type: "bytes[]", internalType: "bytes[]" },
+            {
+              name: "a",
+              type: "tuple",
+              internalType: "struct AcalEscrow.Action",
+              components: [
+                { name: "orderId", type: "uint256", internalType: "uint256" },
+                { name: "actionType", type: "uint8", internalType: "enum AcalEscrow.ActionType" },
+                { name: "evidenceHash", type: "bytes32", internalType: "bytes32" },
+                { name: "deadline", type: "uint256", internalType: "uint256" },
+              ],
+            },
+          ],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
           name: "arbitro",
           inputs: [],
           outputs: [{ name: "", type: "address", internalType: "address" }],
