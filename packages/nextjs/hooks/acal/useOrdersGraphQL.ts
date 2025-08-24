@@ -78,6 +78,9 @@ export function useAllOrders(limit = 100) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Only run on client side to avoid SSR connection issues
+    if (typeof window === "undefined") return;
+
     async function fetchOrders() {
       try {
         setIsLoading(true);
@@ -287,6 +290,9 @@ export function useGlobalStats() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Only run on client side to avoid SSR connection issues
+    if (typeof window === "undefined") return;
+
     async function fetchStats() {
       try {
         setIsLoading(true);
