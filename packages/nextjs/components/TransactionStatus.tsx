@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import type { Hash } from "viem";
 import { useWaitForTransactionReceipt } from "wagmi";
 
@@ -28,15 +28,26 @@ export const TransactionStatus: React.FC<TransactionStatusProps> = ({ txHash, st
     hash: txHash,
   });
 
+  const handleSuccess = useCallback(() => {
+    onSuccess?.();
+  }, [onSuccess]);
+
+  const handleError = useCallback(
+    (error: string) => {
+      onError?.(error);
+    },
+    [onError],
+  );
+
   useEffect(() => {
     if (receipt && receipt.status === "success") {
-      // Transaction successful
-      onSuccess?.();
+      // Transaction successful - only call once
+      handleSuccess();
     } else if (receiptError) {
       // Transaction failed
-      onError?.(receiptError.message);
+      handleError(receiptError.message);
     }
-  }, [receipt, receiptError, onSuccess, onError]);
+  }, [receipt, receiptError, handleSuccess, handleError]);
 
   const getStepIcon = (step: TransactionStep) => {
     if (step.status === "completed") return "✅";

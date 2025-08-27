@@ -24,22 +24,11 @@ import {
 interface OrderCardProps {
   order: FrontendOrder;
   onLockOrder: (orderId: number, orderMon: bigint) => void;
-  onClaimOrder: (orderId: number) => void;
   isLocking: boolean;
-  isClaiming: boolean;
   lockingOrderId?: number;
-  claimingOrderId?: number;
 }
 
-const OrderCard: React.FC<OrderCardProps> = ({
-  order,
-  onLockOrder,
-  onClaimOrder,
-  isLocking,
-  isClaiming,
-  lockingOrderId,
-  claimingOrderId,
-}) => {
+const OrderCard: React.FC<OrderCardProps> = ({ order, onLockOrder, isLocking, lockingOrderId }) => {
   const { address: connectedAddress } = useAccount();
 
   const isExpired = order ? Number(order.expiry) * 1000 < Date.now() : false;
@@ -145,19 +134,24 @@ const OrderCard: React.FC<OrderCardProps> = ({
         </button>
       )}
 
-      {canClaim && order && (
-        <button
-          onClick={() => onClaimOrder(parseInt(order.id))}
-          disabled={isClaiming}
-          className="w-full bg-green-500 hover:bg-green-500/80 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-bold py-3 px-4 rounded-lg transition-colors"
-        >
-          {isClaiming && claimingOrderId === parseInt(order.id) ? "Reclamando..." : "🏆 Reclamar Orden"}
-        </button>
+      {order && order.status === ORDER_STATUS.LOCKED && isTaker && (
+        <div className="space-y-2">
+          <div className="bg-green-500/10 rounded-lg p-3 text-center">
+            <span className="text-sm text-green-400 font-semibold">✅ Tu orden bloqueada exitosamente</span>
+          </div>
+          <button
+            onClick={() => (window.location.href = `/orders/${order.id}/claim`)}
+            className="w-full bg-[#FFD700] hover:bg-[#FFD700]/80 text-black font-bold py-3 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2"
+          >
+            <span>🏆</span>
+            <span>Continuar con el Claim</span>
+          </button>
+        </div>
       )}
 
-      {isTaker && order && order.status === ORDER_STATUS.LOCKED && (
-        <div className="bg-green-500/10 rounded-lg p-2 text-center mt-2">
-          <span className="text-sm text-green-400">Tu orden bloqueada - ¡Lista para reclamar!</span>
+      {canClaim && order && !isTaker && (
+        <div className="bg-yellow-500/10 rounded-lg p-2 text-center">
+          <span className="text-sm text-yellow-400">Orden bloqueada por otro usuario</span>
         </div>
       )}
 
@@ -172,6 +166,7 @@ const OrderCard: React.FC<OrderCardProps> = ({
 
 const OrdersPage: NextPage = () => {
   const router = useRouter();
+  const { address: connectedAddress } = useAccount();
   const { isLoading: isLoadingOrders } = useAllOrders();
   const { stats } = useGlobalStats();
   const { lockOrder, isLocking, getTakerBond } = useLockOrder();
@@ -197,13 +192,13 @@ const OrdersPage: NextPage = () => {
     {
       id: "24",
       maker: "0xc095c7cA2B56b0F0DC572d5d4A9Eb1B37f4306a0",
-      taker: undefined,
+      taker: connectedAddress || "0x0000000000000000000000000000000000000000",
       cr: "0x6a06a5f29b82a9c854b983873ac5ab07d7ac10a344d321569c0a0cb8e492cdc2",
       hashQR: "0x2410d412de8e1d9930cdce09c889a9a033ec0db99d71499cc51e75345c05919f",
       mxn: BigInt(100),
       mon: BigInt("1000000000000000000"), // 1 ETH
       expiry: BigInt(1756655545),
-      status: 0, // OPEN
+      status: connectedAddress ? 1 : 0, // LOCKED if connected, OPEN if not
       makerBond: BigInt("50000000000000000"), // 0.05 ETH
       takerBond: BigInt("50000000000000000"), // 0.05 ETH
       createdAt: BigInt(Math.floor(Date.now() / 1000)),
@@ -302,24 +297,7 @@ const OrdersPage: NextPage = () => {
     });
   };
 
-  // Show confirmation dialog for claiming order
-  const handleClaimOrder = (orderId: number) => {
-    const order = orders.find(o => parseInt(o.id) === orderId);
-    if (!order) return;
-
-    setConfirmDialog({
-      isOpen: true,
-      action: "claim",
-      orderId,
-      orderData: {
-        orderId: order.id,
-        maker: order.maker,
-        mxn: order.mxn,
-        mon: order.mon,
-        takerBond: getTakerBond(),
-      },
-    });
-  };
+  // This function is not used anymore - claims are handled in the separate claim page
 
   // Execute the actual lock transaction
   const executeLockOrder = async (orderId: number, orderMon: bigint) => {
@@ -493,11 +471,8 @@ const OrdersPage: NextPage = () => {
                   key={order.id}
                   order={order}
                   onLockOrder={handleLockOrder}
-                  onClaimOrder={handleClaimOrder}
                   isLocking={isLocking}
-                  isClaiming={isCompleting}
                   lockingOrderId={undefined}
-                  claimingOrderId={undefined}
                 />
               ))
           )}
@@ -542,11 +517,18 @@ const OrdersPage: NextPage = () => {
               ...prev,
               steps: prev.steps.map(step => ({ ...step, status: "completed" as const })),
             }));
-            toast.success(
-              transactionStatus.action === "lock"
-                ? "¡Orden bloqueada exitosamente!"
-                : "¡Orden completada exitosamente!",
-            );
+
+            if (transactionStatus.action === "lock") {
+              toast.success("¡Orden bloqueada exitosamente!");
+              // Navigate to claim page after successful lock
+              setTimeout(() => {
+                const orderId = confirmDialog.orderId;
+                router.push(`/orders/${orderId}/claim`);
+                setTransactionStatus({ isOpen: false, steps: [], action: "lock" });
+              }, 2000);
+            } else {
+              toast.success("¡Orden completada exitosamente!");
+            }
           }}
           onError={error => {
             setTransactionStatus(prev => ({
