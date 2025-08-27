@@ -7,9 +7,11 @@ import toast from "react-hot-toast";
 import { formatEther } from "viem";
 import { useAccount } from "wagmi";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
+import { ConfirmDialog } from "~~/components/ConfirmDialog";
 import { PWAInstallPrompt } from "~~/components/PWAInstall";
+import { TransactionStatus, type TransactionStep } from "~~/components/TransactionStatus";
 import { Address } from "~~/components/scaffold-eth";
-import { type CompleteOrderAction, useCompleteOrder } from "~~/hooks/acal/useCompleteOrder";
+import { useCompleteOrder } from "~~/hooks/acal/useCompleteOrder";
 import { useLockOrder } from "~~/hooks/acal/useLockOrder";
 import {
   type FrontendOrder,
@@ -172,10 +174,23 @@ const OrdersPage: NextPage = () => {
   const router = useRouter();
   const { isLoading: isLoadingOrders } = useAllOrders();
   const { stats } = useGlobalStats();
-  const { lockOrder, isLocking } = useLockOrder();
-  const { completeOrder, isCompleting } = useCompleteOrder();
-  const [lockingOrderId, setLockingOrderId] = useState<number | undefined>();
-  const [claimingOrderId, setClaimingOrderId] = useState<number | undefined>();
+  const { lockOrder, isLocking, getTakerBond } = useLockOrder();
+  const { completeOrderDemo, isCompleting } = useCompleteOrder();
+
+  // UI State
+  const [confirmDialog, setConfirmDialog] = useState<{
+    isOpen: boolean;
+    action: "lock" | "claim";
+    orderId: number;
+    orderData?: any;
+  }>({ isOpen: false, action: "lock", orderId: 0 });
+
+  const [transactionStatus, setTransactionStatus] = useState<{
+    isOpen: boolean;
+    steps: TransactionStep[];
+    txHash?: any;
+    action: "lock" | "claim";
+  }>({ isOpen: false, steps: [], action: "lock" });
 
   // Fallback orders from your contract data for development
   const fallbackOrders: FrontendOrder[] = [
@@ -268,47 +283,126 @@ const OrdersPage: NextPage = () => {
   // Always use fallback orders for now (disable Envio GraphQL dependency)
   const orders = fallbackOrders;
 
-  const handleLockOrder = async (orderId: number, orderMon: bigint) => {
+  // Show confirmation dialog for locking order
+  const handleLockOrder = (orderId: number, orderMon: bigint) => {
+    const order = orders.find(o => parseInt(o.id) === orderId);
+    if (!order) return;
+
+    setConfirmDialog({
+      isOpen: true,
+      action: "lock",
+      orderId,
+      orderData: {
+        orderId: order.id,
+        maker: order.maker,
+        mxn: order.mxn,
+        mon: orderMon,
+        takerBond: getTakerBond(),
+      },
+    });
+  };
+
+  // Show confirmation dialog for claiming order
+  const handleClaimOrder = (orderId: number) => {
+    const order = orders.find(o => parseInt(o.id) === orderId);
+    if (!order) return;
+
+    setConfirmDialog({
+      isOpen: true,
+      action: "claim",
+      orderId,
+      orderData: {
+        orderId: order.id,
+        maker: order.maker,
+        mxn: order.mxn,
+        mon: order.mon,
+        takerBond: getTakerBond(),
+      },
+    });
+  };
+
+  // Execute the actual lock transaction
+  const executeLockOrder = async (orderId: number, orderMon: bigint) => {
+    setConfirmDialog({ ...confirmDialog, isOpen: false });
+
+    // Setup transaction status modal
+    const lockSteps: TransactionStep[] = [
+      { id: "sign", title: "Firma la transacción", description: "Confirma en tu billetera", status: "active" },
+      {
+        id: "pending",
+        title: "Transacción pendiente",
+        description: "Esperando confirmación en blockchain",
+        status: "pending",
+      },
+      { id: "confirmed", title: "Orden bloqueada", description: "¡Fondos asegurados exitosamente!", status: "pending" },
+    ];
+
+    setTransactionStatus({
+      isOpen: true,
+      steps: lockSteps,
+      action: "lock",
+    });
+
     try {
-      setLockingOrderId(orderId);
-      const toastId = toast.loading("Bloqueando orden...");
+      const result = await lockOrder(orderId, orderMon);
 
-      await lockOrder(orderId, orderMon);
-
-      toast.success("¡Orden bloqueada exitosamente!", { id: toastId });
+      if (result.success && result.txHash) {
+        // Update steps to show transaction is pending
+        setTransactionStatus(prev => ({
+          ...prev,
+          steps: prev.steps.map((step, index) => ({
+            ...step,
+            status: index === 0 ? "completed" : index === 1 ? "active" : "pending",
+          })),
+          txHash: result.txHash,
+        }));
+      } else {
+        throw new Error(result.error || "Unknown error");
+      }
     } catch (error) {
       console.error("Error locking order:", error);
       toast.error("Error al bloquear la orden: " + (error instanceof Error ? error.message : String(error)));
-    } finally {
-      setLockingOrderId(undefined);
+      setTransactionStatus({ isOpen: false, steps: [], action: "lock" });
     }
   };
 
-  const handleClaimOrder = async (orderId: number) => {
+  // Execute the actual claim transaction
+  const executeClaimOrder = async (orderId: number) => {
+    setConfirmDialog({ ...confirmDialog, isOpen: false });
+
+    // Setup transaction status modal
+    const claimSteps: TransactionStep[] = [
+      { id: "sign", title: "Firma la completación", description: "Confirma en tu billetera", status: "active" },
+      { id: "pending", title: "Procesando completación", description: "Liberando fondos y bonos", status: "pending" },
+      { id: "completed", title: "Orden completada", description: "¡Transacción exitosa!", status: "pending" },
+    ];
+
+    setTransactionStatus({
+      isOpen: true,
+      steps: claimSteps,
+      action: "claim",
+    });
+
     try {
-      setClaimingOrderId(orderId);
-      const toastId = toast.loading("Reclamando orden...");
+      const result = await completeOrderDemo(orderId);
 
-      // For now, we'll create a simple successful completion action
-      // In a real implementation, this would involve QR code verification
-      const action: CompleteOrderAction = {
-        orderId: BigInt(orderId),
-        actionType: 0, // COMPLETE_SUCCESS
-        evidenceHash: "0x0000000000000000000000000000000000000000000000000000000000000000", // Placeholder
-        deadline: BigInt(Math.floor(Date.now() / 1000) + 3600), // 1 hour from now
-      };
-
-      // For demo purposes, using empty signatures array
-      // In production, this would require proper EIP-712 signatures
-      const signatures: `0x${string}`[] = [];
-      await completeOrder(orderId, signatures, action);
-
-      toast.success("¡Orden reclamada exitosamente!", { id: toastId });
+      if (result.success && result.txHash) {
+        // Update steps to show transaction is pending
+        setTransactionStatus(prev => ({
+          ...prev,
+          steps: prev.steps.map((step, index) => ({
+            ...step,
+            status: index === 0 ? "completed" : index === 1 ? "active" : "pending",
+          })),
+          txHash: result.txHash,
+        }));
+      } else {
+        throw new Error(result.error || "Unknown error");
+      }
     } catch (error) {
       console.error("Error claiming order:", error);
       toast.error("Error al reclamar la orden: " + (error instanceof Error ? error.message : String(error)));
-    } finally {
-      setClaimingOrderId(undefined);
+      setTransactionStatus({ isOpen: false, steps: [], action: "claim" });
     }
   };
 
@@ -402,8 +496,8 @@ const OrdersPage: NextPage = () => {
                   onClaimOrder={handleClaimOrder}
                   isLocking={isLocking}
                   isClaiming={isCompleting}
-                  lockingOrderId={lockingOrderId}
-                  claimingOrderId={claimingOrderId}
+                  lockingOrderId={undefined}
+                  claimingOrderId={undefined}
                 />
               ))
           )}
@@ -414,6 +508,58 @@ const OrdersPage: NextPage = () => {
           <p>🛶 Tu canoa a Monad • Navega con confianza</p>
         </div>
       </div>
+
+      {/* Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        onClose={() => setConfirmDialog({ ...confirmDialog, isOpen: false })}
+        onConfirm={() => {
+          if (confirmDialog.action === "lock" && confirmDialog.orderData) {
+            executeLockOrder(confirmDialog.orderId, confirmDialog.orderData.mon);
+          } else if (confirmDialog.action === "claim") {
+            executeClaimOrder(confirmDialog.orderId);
+          }
+        }}
+        title={confirmDialog.action === "lock" ? "Bloquear Orden" : "Reclamar Orden"}
+        description={
+          confirmDialog.action === "lock"
+            ? "Confirma el pago para bloquear esta orden"
+            : "Confirma para completar y reclamar esta orden"
+        }
+        orderData={confirmDialog.orderData}
+        isLoading={isLocking || isCompleting}
+        action={confirmDialog.action}
+      />
+
+      {/* Transaction Status Modal */}
+      {transactionStatus.isOpen && (
+        <TransactionStatus
+          txHash={transactionStatus.txHash}
+          steps={transactionStatus.steps}
+          onClose={() => setTransactionStatus({ isOpen: false, steps: [], action: "lock" })}
+          onSuccess={() => {
+            setTransactionStatus(prev => ({
+              ...prev,
+              steps: prev.steps.map(step => ({ ...step, status: "completed" as const })),
+            }));
+            toast.success(
+              transactionStatus.action === "lock"
+                ? "¡Orden bloqueada exitosamente!"
+                : "¡Orden completada exitosamente!",
+            );
+          }}
+          onError={error => {
+            setTransactionStatus(prev => ({
+              ...prev,
+              steps: prev.steps.map(step => ({
+                ...step,
+                status: step.status === "active" ? ("failed" as const) : step.status,
+              })),
+            }));
+            toast.error("Error en la transacción: " + error);
+          }}
+        />
+      )}
 
       {/* PWA Install Prompt */}
       <PWAInstallPrompt />
