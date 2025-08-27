@@ -170,7 +170,7 @@ const OrderCard: React.FC<OrderCardProps> = ({
 
 const OrdersPage: NextPage = () => {
   const router = useRouter();
-  const { orders: graphqlOrders, isLoading: isLoadingOrders, error: ordersError } = useAllOrders();
+  const { isLoading: isLoadingOrders } = useAllOrders();
   const { stats } = useGlobalStats();
   const { lockOrder, isLocking } = useLockOrder();
   const { completeOrder, isCompleting } = useCompleteOrder();
@@ -265,8 +265,8 @@ const OrdersPage: NextPage = () => {
     },
   ];
 
-  // Use GraphQL orders if available, otherwise fallback to hardcoded orders for development
-  const orders = graphqlOrders.length > 0 ? graphqlOrders : fallbackOrders;
+  // Always use fallback orders for now (disable Envio GraphQL dependency)
+  const orders = fallbackOrders;
 
   const handleLockOrder = async (orderId: number, orderMon: bigint) => {
     try {
@@ -358,21 +358,17 @@ const OrdersPage: NextPage = () => {
           </div>
         </div>
 
-        {/* Error/Fallback Display */}
-        {ordersError && (
-          <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4 mb-8">
-            <div className="text-yellow-400 text-center">
-              <div className="text-2xl mb-2">🔄</div>
-              <div className="font-semibold">Usando órdenes de desarrollo</div>
-              <div className="text-sm mt-1">
-                {graphqlOrders.length === 0
-                  ? "Mostrando órdenes hardcodeadas para desarrollo"
-                  : "GraphQL disponible - " + graphqlOrders.length + " órdenes cargadas"}
-              </div>
-              <div className="text-xs mt-2 text-gray-400">{ordersError}</div>
+        {/* Development Mode Display */}
+        <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4 mb-8">
+          <div className="text-blue-400 text-center">
+            <div className="text-2xl mb-2">🚧</div>
+            <div className="font-semibold">Modo Desarrollo - Órdenes del Contrato</div>
+            <div className="text-sm mt-1">
+              Mostrando {fallbackOrders.length} órdenes directamente del contrato (IDs: 19-26)
             </div>
+            <div className="text-xs mt-2 text-gray-400">Funcionalidad completa de lock/claim disponible</div>
           </div>
-        )}
+        </div>
 
         {/* Orders Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
